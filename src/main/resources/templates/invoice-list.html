@@ -2,16 +2,27 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Lista faktur</title>
+  <script>
+    function confirmDelete(id) {
+      if (confirm('Czy na pewno chcesz usunąć tę fakturę?')) {
+        window.location.href = '/invoices/delete/' + id;
+      }
+    }
+  </script>
 </head>
 <body>
 <h1>Lista faktur</h1>
+
+<div th:if="${message}" class="success" th:text="${message}"></div>
+<div th:if="${error}" class="error" th:text="${error}"></div>
+
 <a href="/invoices/new">Dodaj fakturę</a>
 <form method="get" action="/invoices">
   <label>Status:
     <select name="status">
-      <option value="">-- wszystkie --</option>
-      <option value="OPŁACONA" th:selected="${statusFilter == 'OPŁACONA'}">OPŁACONA</option>
-      <option value="NIEOPŁACONA" th:selected="${statusFilter == 'NIEOPŁACONA'}">NIEOPŁACONA</option>
+      <option value="" th:selected="${statusFilter == null}">-- wszystkie --</option>
+      <option th:value="OPLACONA" th:selected="${statusFilter?.name() == 'OPLACONA'}">OPLACONA</option>
+      <option th:value="NIEOPLACONA" th:selected="${statusFilter?.name() == 'NIEOPLACONA'}">NIEOPLACONA</option>
     </select>
   </label>
   <button type="submit">Filtruj</button>
@@ -28,7 +39,7 @@
     <td th:text="${inv.status}"></td>
     <td>
       <a th:href="@{/invoices/edit/{id}(id=${inv.id})}">Edytuj</a> |
-      <a th:href="@{/invoices/delete/{id}(id=${inv.id})}">Usuń</a>
+      <a href="javascript:void(0)" th:onclick="'confirmDelete(' + ${inv.id} + ')'">Usuń</a>
     </td>
   </tr>
 </table>
