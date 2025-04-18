@@ -1,3 +1,5 @@
+package org.example.model;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,12 +15,12 @@ public class Invoice {
     private String product;
     private int quantity;
     private double price;
-    private String status;
+    private InvoiceStatus status;
 
     public Invoice() {
     }
 
-    public Invoice(Long id, String customerName, String product, int quantity, double price, String status) {
+    public Invoice(Long id, String customerName, String product, int quantity, double price, InvoiceStatus status) {
         this.id = id;
         this.customerName = customerName;
         this.product = product;
@@ -67,11 +69,11 @@ public class Invoice {
         this.price = price;
     }
 
-    public String getStatus() {
+    public InvoiceStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(InvoiceStatus status) {
         this.status = status;
     }
 
