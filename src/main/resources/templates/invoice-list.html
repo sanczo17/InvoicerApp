@@ -37,8 +37,8 @@
   <label>Status:
     <select name="status">
       <option value="" th:selected="${statusFilter == null}">-- wszystkie --</option>
-      <option th:value="OPLACONA" th:selected="${statusFilter?.name() == 'OPLACONA'}">OPLACONA</option>
-      <option th:value="NIEOPLACONA" th:selected="${statusFilter?.name() == 'NIEOPLACONA'}">NIEOPLACONA</option>
+      <option th:value="OPŁACONA" th:selected="${statusFilter?.name() == 'OPŁACONA'}">OPŁACONA</option>
+      <option th:value="NIEOPŁACONA" th:selected="${statusFilter?.name() == 'NIEOPŁACONA'}">NIEOPŁACONA</option>
     </select>
   </label>
   <button type="submit">Filtruj</button>
