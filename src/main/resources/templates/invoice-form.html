@@ -7,59 +7,124 @@
         .error { color: red; }
         .item-row { margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; }
     </style>
+    <script>
+        let itemCounter = 0;
+
+        function addItemRow() {
+            itemCounter++;
+            const container = document.getElementById('items-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.id = 'item-row-' + itemCounter;
+
+            const index = document.querySelectorAll('.item-row').length;
+
+            newRow.innerHTML = `
+                <h4>Pozycja ${index + 1}</h4>
+                <input type="hidden" name="items[${index}].id" />
+
+                <div>
+                    <label>Produkt:</label>
+                    <input type="text" name="items[${index}].product" required/>
+                </div>
+
+                <div>
+                    <label>Ilość:</label>
+                    <input type="number" min="1" value="1" name="items[${index}].quantity" required/>
+                </div>
+
+                <div>
+                    <label>Cena:</label>
+                    <input type="number" step="0.01" min="0" value="0" name="items[${index}].price" required/>
+                </div>
+
+                <div>
+                    <button type="button" onclick="removeItemRow(${itemCounter})">Usuń pozycję</button>
+                </div>
+            `;
+
+            container.appendChild(newRow);
+            renumberItems();
+        }
+
+        function removeItemRow(rowId) {
+            const container = document.getElementById('items-container');
+            const row = document.getElementById('item-row-' + rowId);
+
+            if (container.children.length > 1) {
+                container.removeChild(row);
+                renumberItems();
+            }
+        }
+
+        function renumberItems() {
+            const rows = document.querySelectorAll('.item-row');
+            rows.forEach((row, index) => {
+                const header = row.querySelector('h4');
+                header.textContent = `Pozycja ${index + 1}`;
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach(input => {
+                    if (input.name) {
+                        input.name = input.name.replace(/items\[\d+\]/, `items[${index}]`);
+                    }
+                });
+            });
+        }
+    </script>
 </head>
 <body>
 <h1 th:text="${invoice.id == null} ? 'Nowa faktura' : 'Edycja faktury'"></h1>
 
-<form th:action="@{/invoices}" th:object="${invoice}" method="post">
-    <input type="hidden" th:field="*{id}"/>
+<form th:action="@{/invoices}" method="post">
+    <input type="hidden" name="id" th:value="${invoice.id}"/>
 
     <div>
         <label>Klient:</label>
-        <input type="text" th:field="*{customerName}" required/>
-        <span class="error" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"></span>
+        <input type="text" name="customerName" th:value="${invoice.customerName}" required/>
     </div>
 
     <div>
         <label>Status:</label>
-        <select th:field="*{status}" required>
+        <select name="status" required>
             <option th:each="statusOpt : ${statuses}"
                     th:value="${statusOpt}"
-                    th:text="${statusOpt}">
+                    th:text="${statusOpt}"
+                    th:selected="${statusOpt == invoice.status}">
             </option>
         </select>
-        <span class="error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span>
     </div>
 
     <h3>Pozycje faktury</h3>
 
-    <div th:each="item, itemStat : *{items}" class="item-row">
-        <h4 th:text="'Pozycja ' + ${itemStat.count}"></h4>
+    <div id="items-container">
+        <div th:each="item, itemStat : ${invoice.items}" class="item-row" th:id="'item-row-' + ${itemStat.index}">
+            <h4 th:text="'Pozycja ' + ${itemStat.count}"></h4>
 
-        <input type="hidden" th:field="*{items[__${itemStat.index}__].id}" />
+            <input type="hidden" th:name="'items[' + ${itemStat.index} + '].id'" th:value="${item.id}" />
 
-        <div>
-            <label>Produkt:</label>
-            <input type="text" th:field="*{items[__${itemStat.index}__].product}" required/>
-        </div>
+            <div>
+                <label>Produkt:</label>
+                <input type="text" th:name="'items[' + ${itemStat.index} + '].product'" th:value="${item.product}" required/>
+            </div>
 
-        <div>
-            <label>Ilość:</label>
-            <input type="number" min="1" th:field="*{items[__${itemStat.index}__].quantity}" required/>
-        </div>
+            <div>
+                <label>Ilość:</label>
+                <input type="number" min="1" th:name="'items[' + ${itemStat.index} + '].quantity'" th:value="${item.quantity}" required/>
+            </div>
 
-        <div>
-            <label>Cena:</label>
-            <input type="number" step="0.01" min="0" th:field="*{items[__${itemStat.index}__].price}" required/>
-        </div>
+            <div>
+                <label>Cena:</label>
+                <input type="number" step="0.01" min="0" th:name="'items[' + ${itemStat.index} + '].price'" th:value="${item.price}" required/>
+            </div>
 
-        <div th:if="${itemStat.count > 1}">
-            <a th:href="@{'/invoices/removeItem/' + ${itemStat.index}}">Usuń pozycję</a>
+            <div th:if="${itemStat.count > 1}">
+                <button type="button" th:onclick="'removeItemRow(' + ${itemStat.index} + ')'">Usuń pozycję</button>
+            </div>
         </div>
     </div>
 
     <div>
-        <button type="submit" formaction="/invoices/addItem">Dodaj pozycję</button>
+        <button type="button" onclick="addItemRow()">Dodaj pozycję</button>
     </div>
 
     <div style="margin-top: 20px;">
@@ -67,5 +132,9 @@
         <a href="/invoices">Anuluj</a>
     </div>
 </form>
+
+<script th:inline="javascript">
+    itemCounter = /*[[${invoice.items.size()}]]*/ 0;
+</script>
 </body>
 </html>
