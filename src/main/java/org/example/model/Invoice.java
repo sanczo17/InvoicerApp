@@ -1,94 +1,74 @@
 package org.example.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.validation.constraints.Min;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
-public class Invoice { @Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-private Long id;
+public class Invoice {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @NotBlank(message = "Nazwa klienta jest wymagana")
     private String customerName;
 
-    @NotBlank(message = "Nazwa produktu jest wymagana")
-    private String product;
-
-    @Min(value = 1, message = "Ilość musi być większa od 0")
-    private int quantity;
-
-    @Min(value = 0, message = "Cena nie może być ujemna")
-    private double price;
-
     @NotNull(message = "Status jest wymagany")
+    @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
 
-        public Invoice() {
-        }
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InvoiceItem> items = new ArrayList<>();
 
-        public Invoice(Long id, String customerName, String product, int quantity, double price, InvoiceStatus status) {
-            this.id = id;
-            this.customerName = customerName;
-            this.product = product;
-            this.quantity = quantity;
-            this.price = price;
-            this.status = status;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public String getCustomerName() {
-            return customerName;
-        }
-
-        public void setCustomerName(String customerName) {
-            this.customerName = customerName;
-        }
-
-        public String getProduct() {
-            return product;
-        }
-
-        public void setProduct(String product) {
-            this.product = product;
-        }
-
-        public int getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(int quantity) {
-            this.quantity = quantity;
-        }
-
-        public double getPrice() {
-            return price;
-        }
-
-        public void setPrice(double price) {
-            this.price = price;
-        }
-
-        public InvoiceStatus getStatus() {
-            return status;
-        }
-
-        public void setStatus(InvoiceStatus status) {
-            this.status = status;
-        }
-
-        public double getTotal() {
-            return quantity * price;
-        }
-
+    public Invoice() {
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public InvoiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(InvoiceStatus status) {
+        this.status = status;
+    }
+
+    public List<InvoiceItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<InvoiceItem> items) {
+        this.items = items;
+    }
+
+    public void addItem(InvoiceItem item) {
+        items.add(item);
+        item.setInvoice(this);
+    }
+
+    public void removeItem(InvoiceItem item) {
+        items.remove(item);
+        item.setInvoice(null);
+    }
+
+    public double getTotal() {
+        return items.stream().mapToDouble(InvoiceItem::getTotal).sum();
+    }
+}

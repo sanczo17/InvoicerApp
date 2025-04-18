@@ -2,6 +2,7 @@ package org.example.controller;
 
 import jakarta.validation.Valid;
 import org.example.model.Invoice;
+import org.example.model.InvoiceItem;
 import org.example.repository.InvoiceRepository;
 import org.example.model.InvoiceStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,16 +36,27 @@ public class InvoiceController {
 
     @GetMapping("/new")
     public String showForm(Model model) {
-        model.addAttribute("invoice", new Invoice());
+        Invoice invoice = new Invoice();
+        invoice.getItems().add(new InvoiceItem());  // Dodaj pierwszą pustą pozycję
+
+        model.addAttribute("invoice", invoice);
         model.addAttribute("statuses", InvoiceStatus.values());
         return "invoice-form";
     }
 
     @PostMapping
-    public String createOrUpdate(@Valid @ModelAttribute Invoice invoice, BindingResult result, Model model) {
+    public String createOrUpdate(@ModelAttribute Invoice invoice, BindingResult result, Model model) {
         if (result.hasErrors()) {
             model.addAttribute("statuses", InvoiceStatus.values());
             return "invoice-form";
+        }
+
+        // Usuń puste pozycje
+        invoice.getItems().removeIf(item -> item.getProduct() == null || item.getProduct().isEmpty());
+
+        // Ustaw relację dla wszystkich elementów
+        for (InvoiceItem item : invoice.getItems()) {
+            item.setInvoice(invoice);
         }
 
         invoiceRepository.save(invoice);
@@ -55,6 +67,11 @@ public class InvoiceController {
     public String edit(@PathVariable Long id, Model model) {
         Invoice invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nieprawidłowe ID faktury: " + id));
+
+        // Jeśli faktura nie ma pozycji, dodaj jedną pustą
+        if (invoice.getItems().isEmpty()) {
+            invoice.getItems().add(new InvoiceItem());
+        }
 
         model.addAttribute("invoice", invoice);
         model.addAttribute("statuses", InvoiceStatus.values());
@@ -70,6 +87,30 @@ public class InvoiceController {
             redirectAttributes.addFlashAttribute("error", "Nie można usunąć faktury");
         }
         return "redirect:/invoices";
+    }
+
+    @PostMapping("/addItem")
+    public String addItem(@ModelAttribute Invoice invoice, Model model) {
+        invoice.getItems().add(new InvoiceItem());
+        model.addAttribute("invoice", invoice);
+        model.addAttribute("statuses", InvoiceStatus.values());
+        return "invoice-form";
+    }
+
+    @GetMapping("/removeItem/{index}")
+    public String removeItem(@ModelAttribute Invoice invoice, @PathVariable int index, Model model) {
+        if (index >= 0 && index < invoice.getItems().size()) {
+            invoice.getItems().remove(index);
+        }
+
+        // Upewnij się, że zawsze jest przynajmniej jedna pozycja
+        if (invoice.getItems().isEmpty()) {
+            invoice.getItems().add(new InvoiceItem());
+        }
+
+        model.addAttribute("invoice", invoice);
+        model.addAttribute("statuses", InvoiceStatus.values());
+        return "invoice-form";
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

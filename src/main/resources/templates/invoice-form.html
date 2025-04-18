@@ -1,39 +1,71 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>Formularz faktury</title>
     <style>
         .error { color: red; }
+        .item-row { margin-bottom: 10px; padding: 5px; background-color: #f5f5f5; }
     </style>
 </head>
 <body>
 <h1 th:text="${invoice.id == null} ? 'Nowa faktura' : 'Edycja faktury'"></h1>
+
 <form th:action="@{/invoices}" th:object="${invoice}" method="post">
     <input type="hidden" th:field="*{id}"/>
 
-    Klient: <input type="text" th:field="*{customerName}"/>
-    <span class="error" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"></span><br/>
+    <div>
+        <label>Klient:</label>
+        <input type="text" th:field="*{customerName}" required/>
+        <span class="error" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"></span>
+    </div>
 
-    Produkt: <input type="text" th:field="*{product}"/>
-    <span class="error" th:if="${#fields.hasErrors('product')}" th:errors="*{product}"></span><br/>
+    <div>
+        <label>Status:</label>
+        <select th:field="*{status}" required>
+            <option th:each="statusOpt : ${statuses}"
+                    th:value="${statusOpt}"
+                    th:text="${statusOpt}">
+            </option>
+        </select>
+        <span class="error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span>
+    </div>
 
-    Ilosc: <input type="number" th:field="*{quantity}"/>
-    <span class="error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></span><br/>
+    <h3>Pozycje faktury</h3>
 
-    Cena: <input type="number" step="0.01" th:field="*{price}"/>
-    <span class="error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span><br/>
+    <div th:each="item, itemStat : *{items}" class="item-row">
+        <h4 th:text="'Pozycja ' + ${itemStat.count}"></h4>
 
-    Status:
-    <select th:field="*{status}">
-        <option th:each="status : ${statuses}"
-                th:value="${status}"
-                th:text="${status}">
-        </option>
-    </select>
-    <span class="error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span><br/>
+        <input type="hidden" th:field="*{items[__${itemStat.index}__].id}" />
 
-    <button type="submit">Zapisz</button>
+        <div>
+            <label>Produkt:</label>
+            <input type="text" th:field="*{items[__${itemStat.index}__].product}" required/>
+        </div>
+
+        <div>
+            <label>Ilość:</label>
+            <input type="number" min="1" th:field="*{items[__${itemStat.index}__].quantity}" required/>
+        </div>
+
+        <div>
+            <label>Cena:</label>
+            <input type="number" step="0.01" min="0" th:field="*{items[__${itemStat.index}__].price}" required/>
+        </div>
+
+        <div th:if="${itemStat.count > 1}">
+            <a th:href="@{'/invoices/removeItem/' + ${itemStat.index}}">Usuń pozycję</a>
+        </div>
+    </div>
+
+    <div>
+        <button type="submit" formaction="/invoices/addItem">Dodaj pozycję</button>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button type="submit">Zapisz fakturę</button>
+        <a href="/invoices">Anuluj</a>
+    </div>
 </form>
-<a href="/invoices">Wróć do listy</a>
 </body>
 </html>

@@ -1,11 +1,27 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+  <meta charset="UTF-8">
   <title>Lista faktur</title>
+  <style>
+    .success { color: green; }
+    .error { color: red; }
+    .items-container { margin-left: 20px; }
+    .item-row { margin: 5px 0; }
+  </style>
   <script>
     function confirmDelete(id) {
       if (confirm('Czy na pewno chcesz usunąć tę fakturę?')) {
         window.location.href = '/invoices/delete/' + id;
+      }
+    }
+
+    function toggleItems(id) {
+      var items = document.getElementById('items-' + id);
+      if (items.style.display === 'none') {
+        items.style.display = 'block';
+      } else {
+        items.style.display = 'none';
       }
     }
   </script>
@@ -27,22 +43,39 @@
   </label>
   <button type="submit">Filtruj</button>
 </form>
+
 <table border="1">
-  <tr><th>ID</th><th>Klient</th><th>Produkt</th><th>Ilość</th><th>Cena</th><th>Suma</th><th>Status</th><th>Akcja</th></tr>
+  <tr>
+    <th>ID</th>
+    <th>Klient</th>
+    <th>Pozycje</th>
+    <th>Suma</th>
+    <th>Status</th>
+    <th>Akcja</th>
+  </tr>
   <tr th:each="inv : ${invoices}">
     <td th:text="${inv.id}"></td>
     <td th:text="${inv.customerName}"></td>
-    <td th:text="${inv.product}"></td>
-    <td th:text="${inv.quantity}"></td>
-    <td th:text="${inv.price}"></td>
+    <td>
+      <button th:onclick="'toggleItems(' + ${inv.id} + ')'">Pokaż/Ukryj pozycje</button>
+      <div th:id="'items-' + ${inv.id}" class="items-container" style="display: none;">
+        <div th:each="item : ${inv.items}" class="item-row">
+          <span th:text="${item.product}"></span> -
+          <span th:text="${item.quantity}"></span> x
+          <span th:text="${item.price}"></span> =
+          <span th:text="${item.total}"></span> zł
+        </div>
+      </div>
+    </td>
     <td th:text="${inv.total}"></td>
     <td th:text="${inv.status}"></td>
     <td>
-      <a th:href="@{/invoices/edit/{id}(id=${inv.id})}">Edytuj</a> |
+      <a th:href="@{'/invoices/edit/' + ${inv.id}}">Edytuj</a> |
       <a href="javascript:void(0)" th:onclick="'confirmDelete(' + ${inv.id} + ')'">Usuń</a>
     </td>
   </tr>
 </table>
+
 <p><strong>Łączna suma:</strong> <span th:text="${summary}"></span> zł</p>
 </body>
 </html>
