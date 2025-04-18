@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Lista faktur</title>
+</head>
+<body>
+<h1>Lista faktur</h1>
+<a href="/invoices/new">Dodaj fakturę</a>
+<form method="get" action="/invoices">
+  <label>Status:
+    <select name="status">
+      <option value="">-- wszystkie --</option>
+      <option value="OPŁACONA" th:selected="${statusFilter == 'OPŁACONA'}">OPŁACONA</option>
+      <option value="NIEOPŁACONA" th:selected="${statusFilter == 'NIEOPŁACONA'}">NIEOPŁACONA</option>
+    </select>
+  </label>
+  <button type="submit">Filtruj</button>
+</form>
+<table border="1">
+  <tr><th>ID</th><th>Klient</th><th>Produkt</th><th>Ilość</th><th>Cena</th><th>Suma</th><th>Status</th><th>Akcja</th></tr>
+  <tr th:each="inv : ${invoices}">
+    <td th:text="${inv.id}"></td>
+    <td th:text="${inv.customerName}"></td>
+    <td th:text="${inv.product}"></td>
+    <td th:text="${inv.quantity}"></td>
+    <td th:text="${inv.price}"></td>
+    <td th:text="${inv.total}"></td>
+    <td th:text="${inv.status}"></td>
+    <td>
+      <a th:href="@{/invoices/edit/{id}(id=${inv.id})}">Edytuj</a> |
+      <a th:href="@{/invoices/delete/{id}(id=${inv.id})}">Usuń</a>
+    </td>
+  </tr>
+</table>
+<p><strong>Łączna suma:</strong> <span th:text="${summary}"></span> zł</p>
+</body>
+</html>
