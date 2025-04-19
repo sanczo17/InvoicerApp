@@ -42,14 +42,59 @@
 
 <div th:if="${message}" class="success" th:text="${message}"></div>
 <div th:if="${error}" class="error" th:text="${error}"></div>
+<div class="search-form">
+  <h3>Zaawansowane wyszukiwanie</h3>
+  <form method="get" action="/invoices/search">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status:</label>
+        <select name="status">
+          <option value="">-- wszystkie --</option>
+          <option value="OPLACONA" th:selected="${statusFilter?.name() == 'OPLACONA'}">OPLACONA</option>
+          <option value="NIEOPLACONA" th:selected="${statusFilter?.name() == 'NIEOPLACONA'}">NIEOPLACONA</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Od daty:</label>
+        <input type="date" name="startDate" th:value="${startDate}">
+      </div>
+
+      <div class="form-group">
+        <label>Do daty:</label>
+        <input type="date" name="endDate" th:value="${endDate}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Klient:</label>
+        <input type="text" name="customerName" th:value="${customerName}">
+      </div>
+
+      <div class="form-group">
+        <label>Min. kwota:</label>
+        <input type="number" step="0.01" name="minAmount" th:value="${minAmount}">
+      </div>
+
+      <div class="form-group">
+        <label>Max. kwota:</label>
+        <input type="number" step="0.01" name="maxAmount" th:value="${maxAmount}">
+      </div>
+    </div>
+
+    <button type="submit">Szukaj</button>
+    <a href="/invoices">Wyczyść</a>
+  </form>
+</div>
 
 <a href="/invoices/new">Dodaj fakturę</a>
 <form method="get" action="/invoices">
   <label>Status:
     <select name="status">
       <option value="" th:selected="${statusFilter == null}">-- wszystkie --</option>
-      <option th:value="OPŁACONA" th:selected="${statusFilter?.name() == 'OPŁACONA'}">OPŁACONA</option>
-      <option th:value="NIEOPŁACONA" th:selected="${statusFilter?.name() == 'NIEOPŁACONA'}">NIEOPŁACONA</option>
+      <option value="OPLACONA" th:selected="${statusFilter?.name() == 'OPLACONA'}">OPLACONA</option>
+      <option value="NIEOPLACONA" th:selected="${statusFilter?.name() == 'NIEOPLACONA'}">NIEOPLACONA</option>
     </select>
   </label>
   <button type="submit">Filtruj</button>
@@ -66,7 +111,7 @@
   </tr>
   <tr th:each="inv : ${invoices}">
     <td th:text="${inv.id}"></td>
-    <td th:text="${inv.customerName}"></td>
+    <td th:text="${inv.customer?.name}"></td>
     <td>
       <button th:onclick="'toggleItems(' + ${inv.id} + ')'">Pokaż/Ukryj pozycje</button>
       <div th:id="'items-' + ${inv.id}" class="items-container" style="display: none;">
@@ -80,11 +125,12 @@
     </td>
     <td th:text="${inv.total}"></td>
     <td th:text="${inv.status}"
-        th:classappend="${inv.status.name() == 'OPŁACONA'} ? 'status-paid' : 'status-unpaid'">
+        th:classappend="${inv.status?.name() == 'OPŁACONA'} ? 'status-paid' : 'status-unpaid'">
     </td>
     <td>
       <a th:href="@{'/invoices/edit/' + ${inv.id}}">Edytuj</a> |
-      <a href="javascript:void(0)" th:onclick="'confirmDelete(' + ${inv.id} + ')'">Usuń</a>
+      <a href="javascript:void(0)" th:onclick="'confirmDelete(' + ${inv.id} + ')'">Usuń</a> |
+      <a th:href="@{'/invoices/pdf/' + ${inv.id}}" target="_blank">PDF</a>
     </td>
   </tr>
 </table>

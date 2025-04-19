@@ -1,9 +1,9 @@
 package org.example.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,18 +13,33 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Nazwa klienta jest wymagana")
-    private String customerName;
+    private String invoiceNumber;
+
+    @NotNull(message = "Data wystawienia jest wymagana")
+    private LocalDate issueDate = LocalDate.now();
+
+    @NotNull(message = "Termin płatności jest wymagany")
+    private LocalDate dueDate = LocalDate.now().plusDays(14);
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod = PaymentMethod.PRZELEW;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
     @NotNull(message = "Status jest wymagany")
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
+
+    private String notes;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItem> items = new ArrayList<>();
 
     public Invoice() {
     }
+
 
     public Long getId() {
         return id;
@@ -34,12 +49,44 @@ public class Invoice {
         this.id = id;
     }
 
-    public String getCustomerName() {
-        return customerName;
+    public String getInvoiceNumber() {
+        return invoiceNumber;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setInvoiceNumber(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public LocalDate getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(LocalDate issueDate) {
+        this.issueDate = issueDate;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public InvoiceStatus getStatus() {
@@ -48,6 +95,14 @@ public class Invoice {
 
     public void setStatus(InvoiceStatus status) {
         this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public List<InvoiceItem> getItems() {
@@ -70,5 +125,9 @@ public class Invoice {
 
     public double getTotal() {
         return items.stream().mapToDouble(InvoiceItem::getTotal).sum();
+    }
+
+    public boolean isOverdue() {
+        return status == InvoiceStatus.NIEOPŁACONA && LocalDate.now().isAfter(dueDate);
     }
 }
