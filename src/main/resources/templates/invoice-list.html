@@ -150,12 +150,10 @@
       <div class="form-row">
         <div class="form-group">
           <label>Status:</label>
-          <select name="status" class="form-control" required>
-            <option th:each="statusOpt : ${T(org.example.model.enums.InvoiceStatus).values()}"
-                    th:value="${statusOpt}"
-                    th:text="${statusOpt.displayName}"
-                    th:selected="${statusOpt == invoice.status}">
-            </option>
+          <select name="status" class="form-control">
+            <option value="">-- wszystkie --</option>
+            <option value="OPŁACONA" th:selected="${statusFilter?.name() == 'OPŁACONA'}">OPŁACONA</option>
+            <option value="NIEOPŁACONA" th:selected="${statusFilter?.name() == 'NIEOPŁACONA'}">NIEOPŁACONA</option>
           </select>
         </div>
 
@@ -221,7 +219,7 @@
       </td>
       <td th:text="${inv.total}"></td>
       <td th:text="${inv.status}"
-          th:classappend="${inv.status?.name() == 'OPLACONA'} ? 'status-paid' : 'status-unpaid'">
+          th:classappend="${inv.status?.name() == 'OPŁACONA'} ? 'status-paid' : 'status-unpaid'">
       </td>
       <td>
         <a th:href="@{'/invoices/edit/' + ${inv.id}}" class="btn">Edytuj</a>
