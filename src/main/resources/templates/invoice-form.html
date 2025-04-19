@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Formularz faktury</title>
+    <title>Formularz faktury - System Faktur</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,6 +12,29 @@
         .container {
             max-width: 800px;
             margin: 0 auto;
+        }
+        .nav {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        .nav a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 15px;
+            text-decoration: none;
+            color: #0d6efd;
+        }
+        .nav a:hover {
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        .nav a.active {
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 4px;
         }
         .panel {
             border: 1px solid #ddd;
@@ -53,12 +76,15 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
         }
         .btn-danger {
             background-color: #f44336;
         }
         .btn-secondary {
             background-color: #6c757d;
+            color: white;
         }
     </style>
     <script>
@@ -128,6 +154,14 @@
 </head>
 <body>
 <div class="container">
+    <!-- Nawigacja z aktywną zakładką -->
+    <div class="nav">
+        <a href="/">Dashboard</a>
+        <a href="/invoices">Faktury</a>
+        <a href="/invoices/new" class="active">Nowa faktura</a>
+        <a href="/auth/logout">Wyloguj</a>
+    </div>
+
     <h1 th:text="${invoice.id == null} ? 'Nowa faktura' : 'Edycja faktury'"></h1>
 
     <form th:action="@{/invoices}" method="post">
@@ -178,7 +212,7 @@
                 <label>Metoda płatności:</label>
                 <select name="paymentMethod" class="form-control">
                     <option value="PRZELEW" th:selected="${invoice.paymentMethod == T(org.example.model.PaymentMethod).PRZELEW}">Przelew</option>
-                    <option value="GOTÓWKA" th:selected="${invoice.paymentMethod == T(org.example.model.PaymentMethod).GOTÓWKA}">Gotówka</option>
+                    <option value="GOTOWKA" th:selected="${invoice.paymentMethod == T(org.example.model.PaymentMethod).GOTOWKA}">Gotówka</option>
                     <option value="KARTA" th:selected="${invoice.paymentMethod == T(org.example.model.PaymentMethod).KARTA}">Karta</option>
                 </select>
             </div>

@@ -8,11 +8,34 @@
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .nav {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    .nav a {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 8px 15px;
+      text-decoration: none;
+      color: #0d6efd;
+    }
+    .nav a:hover {
+      background-color: #e9ecef;
+      border-radius: 4px;
+    }
+    .content-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background-color: #f5f5f5;
+      padding: 20px;
     }
     .login-form {
       background-color: white;
@@ -64,35 +87,46 @@
   </style>
 </head>
 <body>
-<div class="login-form">
-  <h2>Logowanie</h2>
-
-  <div th:if="${param.error}" class="alert">
-    Niepoprawna nazwa użytkownika lub hasło.
+<div class="container">
+  <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/invoices">Faktury</a>
+    <a href="/invoices/new">Nowa faktura</a>
+    <a href="/auth/logout">Wyloguj</a>
   </div>
 
-  <div th:if="${param.logout}" class="alert success">
-    Zostałeś wylogowany.
-  </div>
+  <div class="content-wrapper">
+    <div class="login-form">
+      <h2>Logowanie</h2>
 
-  <div th:if="${message}" class="alert success" th:text="${message}"></div>
+      <div th:if="${param.error}" class="alert">
+        Niepoprawna nazwa użytkownika lub hasło.
+      </div>
 
-  <form th:action="@{/auth/login}" method="post">
-    <div class="form-group">
-      <label for="username">Nazwa użytkownika:</label>
-      <input type="text" id="username" name="username" required>
+      <div th:if="${param.logout}" class="alert success">
+        Zostałeś wylogowany.
+      </div>
+
+      <div th:if="${message}" class="alert success" th:text="${message}"></div>
+
+      <form th:action="@{/auth/login}" method="post">
+        <div class="form-group">
+          <label for="username">Nazwa użytkownika:</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Hasło:</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+
+        <button type="submit" class="btn">Zaloguj</button>
+      </form>
+
+      <div class="register-link">
+        Nie masz konta? <a th:href="@{/auth/register}">Zarejestruj się</a>
+      </div>
     </div>
-
-    <div class="form-group">
-      <label for="password">Hasło:</label>
-      <input type="password" id="password" name="password" required>
-    </div>
-
-    <button type="submit" class="btn">Zaloguj</button>
-  </form>
-
-  <div class="register-link">
-    Nie masz konta? <a th:href="@{/auth/register}">Zarejestruj się</a>
   </div>
 </div>
 </body>

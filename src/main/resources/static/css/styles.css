@@ -1,0 +1,216 @@
+/* Ogólne style */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Nawigacja */
+.nav {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    padding: 10px;
+}
+.nav a {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #0d6efd;
+}
+.nav a:hover {
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+
+/* Komunikaty */
+.success {
+    color: green;
+    padding: 10px;
+    background-color: #d4edda;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+.error {
+    color: red;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+/* Tabele */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+table th, table td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+table th {
+    background-color: #f5f5f5;
+}
+
+/* Formularze */
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.form-row {
+    display: flex;
+    margin: 0 -10px;
+    flex-wrap: wrap;
+}
+.form-row .form-group {
+    flex: 1;
+    padding: 0 10px;
+    min-width: 200px;
+}
+
+/* Przyciski */
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn:hover {
+    background-color: #45a049;
+}
+.btn-secondary {
+    background-color: #6c757d;
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+.btn-danger {
+    background-color: #dc3545;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Panele */
+.panel {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.panel-header {
+    background-color: #f5f5f5;
+    padding: 10px;
+    margin: -15px -15px 15px -15px;
+    border-bottom: 1px solid #ddd;
+    border-radius: 5px 5px 0 0;
+}
+
+/* Style dla pozycji faktury */
+.items-container {
+    margin-left: 20px;
+}
+.item-row {
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+/* Style statusów faktury */
+.status-paid {
+    background-color: #d4edda;
+    color: #155724;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 3px;
+}
+.status-unpaid {
+    background-color: #f8d7da;
+    color: #721c24;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 3px;
+}
+
+/* Dashboard */
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.widget {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    padding: 20px;
+    width: calc(33% - 20px);
+}
+.chart-container {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    padding: 20px;
+    width: 100%;
+}
+.widget h2 {
+    border-bottom: 1px solid #dee2e6;
+    margin-top: 0;
+    padding-bottom: 10px;
+}
+.widget .value {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+/* Strony logowania/rejestracji */
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.login-form, .register-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+}
+.alert {
+    padding: 10px;
+    background-color: #f44336;
+    color: white;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+.register-link, .login-link {
+    text-align: center;
+    margin-top: 15px;
+}

@@ -1,7 +1,7 @@
 package org.example.repository;
 
 import org.example.model.Role;
-import org.example.model.RoleType;
+import org.example.model.enums.RoleType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

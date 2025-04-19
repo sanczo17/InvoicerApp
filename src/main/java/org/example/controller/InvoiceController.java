@@ -4,7 +4,7 @@ import org.example.model.Invoice;
 import org.example.model.InvoiceItem;
 import org.example.repository.InvoiceRepository;
 import org.example.service.PdfService;
-import org.example.model.InvoiceStatus;
+import org.example.model.enums.InvoiceStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;

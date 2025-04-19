@@ -2,8 +2,40 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Lista faktur</title>
+  <title>Lista faktur - System Faktur</title>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .nav {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    .nav a {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 8px 15px;
+      text-decoration: none;
+      color: #0d6efd;
+    }
+    .nav a:hover {
+      background-color: #e9ecef;
+      border-radius: 4px;
+    }
+    .nav a.active {
+      background-color: #0d6efd;
+      color: white;
+      border-radius: 4px;
+    }
     .success { color: green; }
     .error { color: red; }
     .items-container { margin-left: 20px; }
@@ -13,11 +45,71 @@
       color: #155724;
       font-weight: bold;
     }
-
     .status-unpaid {
       background-color: #f8d7da;
       color: #721c24;
       font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    table th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+    .btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin: 2px;
+    }
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+    .search-form {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 -10px;
+    }
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+      padding: 0 10px;
+      margin-bottom: 10px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
   </style>
   <script>
@@ -38,103 +130,108 @@
   </script>
 </head>
 <body>
-<h1>Lista faktur</h1>
+<div class="container">
+  <!-- Nawigacja z aktywną zakładką -->
+  <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/invoices" class="active">Faktury</a>
+    <a href="/invoices/new">Nowa faktura</a>
+    <a href="/auth/logout">Wyloguj</a>
+  </div>
 
-<div th:if="${message}" class="success" th:text="${message}"></div>
-<div th:if="${error}" class="error" th:text="${error}"></div>
-<div class="search-form">
-  <h3>Zaawansowane wyszukiwanie</h3>
-  <form method="get" action="/invoices/search">
-    <div class="form-row">
-      <div class="form-group">
-        <label>Status:</label>
-        <select name="status">
-          <option value="">-- wszystkie --</option>
-          <option value="OPLACONA" th:selected="${statusFilter?.name() == 'OPLACONA'}">OPLACONA</option>
-          <option value="NIEOPLACONA" th:selected="${statusFilter?.name() == 'NIEOPLACONA'}">NIEOPLACONA</option>
-        </select>
-      </div>
+  <h1>Lista faktur</h1>
 
-      <div class="form-group">
-        <label>Od daty:</label>
-        <input type="date" name="startDate" th:value="${startDate}">
-      </div>
+  <div th:if="${message}" class="success" th:text="${message}"></div>
+  <div th:if="${error}" class="error" th:text="${error}"></div>
 
-      <div class="form-group">
-        <label>Do daty:</label>
-        <input type="date" name="endDate" th:value="${endDate}">
-      </div>
-    </div>
+  <div class="search-form">
+    <h3>Zaawansowane wyszukiwanie</h3>
+    <form method="get" action="/invoices/search">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status:</label>
+          <select name="status" class="form-control" required>
+            <option th:each="statusOpt : ${T(org.example.model.enums.InvoiceStatus).values()}"
+                    th:value="${statusOpt}"
+                    th:text="${statusOpt.displayName}"
+                    th:selected="${statusOpt == invoice.status}">
+            </option>
+          </select>
+        </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Klient:</label>
-        <input type="text" name="customerName" th:value="${customerName}">
-      </div>
+        <div class="form-group">
+          <label>Od daty:</label>
+          <input type="date" name="startDate" th:value="${startDate}" class="form-control">
+        </div>
 
-      <div class="form-group">
-        <label>Min. kwota:</label>
-        <input type="number" step="0.01" name="minAmount" th:value="${minAmount}">
-      </div>
-
-      <div class="form-group">
-        <label>Max. kwota:</label>
-        <input type="number" step="0.01" name="maxAmount" th:value="${maxAmount}">
-      </div>
-    </div>
-
-    <button type="submit">Szukaj</button>
-    <a href="/invoices">Wyczyść</a>
-  </form>
-</div>
-
-<a href="/invoices/new">Dodaj fakturę</a>
-<form method="get" action="/invoices">
-  <label>Status:
-    <select name="status">
-      <option value="" th:selected="${statusFilter == null}">-- wszystkie --</option>
-      <option value="OPLACONA" th:selected="${statusFilter?.name() == 'OPLACONA'}">OPLACONA</option>
-      <option value="NIEOPLACONA" th:selected="${statusFilter?.name() == 'NIEOPLACONA'}">NIEOPLACONA</option>
-    </select>
-  </label>
-  <button type="submit">Filtruj</button>
-</form>
-
-<table border="1">
-  <tr>
-    <th>ID</th>
-    <th>Klient</th>
-    <th>Pozycje</th>
-    <th>Suma</th>
-    <th>Status</th>
-    <th>Akcja</th>
-  </tr>
-  <tr th:each="inv : ${invoices}">
-    <td th:text="${inv.id}"></td>
-    <td th:text="${inv.customer?.name}"></td>
-    <td>
-      <button th:onclick="'toggleItems(' + ${inv.id} + ')'">Pokaż/Ukryj pozycje</button>
-      <div th:id="'items-' + ${inv.id}" class="items-container" style="display: none;">
-        <div th:each="item : ${inv.items}" class="item-row">
-          <span th:text="${item.product}"></span> -
-          <span th:text="${item.quantity}"></span> x
-          <span th:text="${item.price}"></span> =
-          <span th:text="${item.total}"></span> zł
+        <div class="form-group">
+          <label>Do daty:</label>
+          <input type="date" name="endDate" th:value="${endDate}" class="form-control">
         </div>
       </div>
-    </td>
-    <td th:text="${inv.total}"></td>
-    <td th:text="${inv.status}"
-        th:classappend="${inv.status?.name() == 'OPŁACONA'} ? 'status-paid' : 'status-unpaid'">
-    </td>
-    <td>
-      <a th:href="@{'/invoices/edit/' + ${inv.id}}">Edytuj</a> |
-      <a href="javascript:void(0)" th:onclick="'confirmDelete(' + ${inv.id} + ')'">Usuń</a> |
-      <a th:href="@{'/invoices/pdf/' + ${inv.id}}" target="_blank">PDF</a>
-    </td>
-  </tr>
-</table>
 
-<p><strong>Łączna suma:</strong> <span th:text="${summary}"></span> zł</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Klient:</label>
+          <input type="text" name="customerName" th:value="${customerName}" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>Min. kwota:</label>
+          <input type="number" step="0.01" name="minAmount" th:value="${minAmount}" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>Max. kwota:</label>
+          <input type="number" step="0.01" name="maxAmount" th:value="${maxAmount}" class="form-control">
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Szukaj</button>
+      <a href="/invoices" class="btn btn-secondary">Wyczyść</a>
+    </form>
+  </div>
+
+  <div style="margin: 20px 0;">
+    <a href="/invoices/new" class="btn">Dodaj fakturę</a>
+  </div>
+
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Klient</th>
+      <th>Pozycje</th>
+      <th>Suma</th>
+      <th>Status</th>
+      <th>Akcja</th>
+    </tr>
+    <tr th:each="inv : ${invoices}">
+      <td th:text="${inv.id}"></td>
+      <td th:text="${inv.customer?.name}"></td>
+      <td>
+        <button onclick="toggleItems(this.dataset.id)" th:data-id="${inv.id}" class="btn btn-secondary">Pokaż/Ukryj pozycje</button>
+        <div th:id="'items-' + ${inv.id}" class="items-container" style="display: none;">
+          <div th:each="item : ${inv.items}" class="item-row">
+            <span th:text="${item.product}"></span> -
+            <span th:text="${item.quantity}"></span> x
+            <span th:text="${item.price}"></span> =
+            <span th:text="${item.total}"></span> zł
+          </div>
+        </div>
+      </td>
+      <td th:text="${inv.total}"></td>
+      <td th:text="${inv.status}"
+          th:classappend="${inv.status?.name() == 'OPLACONA'} ? 'status-paid' : 'status-unpaid'">
+      </td>
+      <td>
+        <a th:href="@{'/invoices/edit/' + ${inv.id}}" class="btn">Edytuj</a>
+        <a href="javascript:void(0)" th:onclick="'confirmDelete(' + ${inv.id} + ')'" class="btn btn-danger">Usuń</a>
+        <a th:href="@{'/invoices/pdf/' + ${inv.id}}" target="_blank" class="btn btn-secondary">PDF</a>
+      </td>
+    </tr>
+  </table>
+
+  <p><strong>Łączna suma:</strong> <span th:text="${summary}"></span> zł</p>
+</div>
 </body>
 </html>

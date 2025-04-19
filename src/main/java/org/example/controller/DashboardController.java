@@ -1,7 +1,7 @@
 package org.example.controller;
 
 import org.example.model.Invoice;
-import org.example.model.InvoiceStatus;
+import org.example.model.enums.InvoiceStatus;
 import org.example.repository.InvoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,12 +24,12 @@ public class DashboardController {
         List<Invoice> allInvoices = invoiceRepository.findAll();
 
         double paidTotal = allInvoices.stream()
-                .filter(invoice -> invoice.getStatus() == InvoiceStatus.OPŁACONA)
+                .filter(invoice -> invoice.getStatus() == InvoiceStatus.OPLACONA)
                 .mapToDouble(Invoice::getTotal)
                 .sum();
 
         double unpaidTotal = allInvoices.stream()
-                .filter(invoice -> invoice.getStatus() == InvoiceStatus.NIEOPŁACONA)
+                .filter(invoice -> invoice.getStatus() == InvoiceStatus.NIEOPLACONA)
                 .mapToDouble(Invoice::getTotal)
                 .sum();
 

@@ -10,6 +10,33 @@
       margin: 0;
       padding: 20px;
     }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .nav {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    .nav a {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 8px 15px;
+      text-decoration: none;
+      color: #0d6efd;
+    }
+    .nav a:hover {
+      background-color: #e9ecef;
+      border-radius: 4px;
+    }
+    .nav a.active {
+      background-color: #0d6efd;
+      color: white;
+      border-radius: 4px;
+    }
     .dashboard {
       display: flex;
       flex-wrap: wrap;
@@ -40,55 +67,40 @@
       font-size: 2em;
       font-weight: bold;
     }
-    .nav {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 10px;
-    }
-    .nav a {
-      display: inline-block;
-      margin-right: 10px;
-      padding: 8px 15px;
-      text-decoration: none;
-      color: #0d6efd;
-    }
-    .nav a:hover {
-      background-color: #e9ecef;
-      border-radius: 4px;
-    }
   </style>
 </head>
 <body>
-<div class="nav">
-  <a href="/">Dashboard</a>
-  <a href="/invoices">Faktury</a>
-  <a href="/invoices/new">Nowa faktura</a>
-</div>
-
-<h1>Dashboard</h1>
-
-<div class="dashboard">
-  <div class="widget">
-    <h2>Faktury zapłacone</h2>
-    <div class="value" th:text="${#numbers.formatDecimal(paidTotal, 0, 'COMMA', 2, 'POINT')} + ' zł'"></div>
+<div class="container">
+  <div class="nav">
+    <a href="/" class="active">Dashboard</a>
+    <a href="/invoices">Faktury</a>
+    <a href="/invoices/new">Nowa faktura</a>
+    <a href="/auth/logout">Wyloguj</a>
   </div>
 
-  <div class="widget">
-    <h2>Faktury niezapłacone</h2>
-    <div class="value" th:text="${#numbers.formatDecimal(unpaidTotal, 0, 'COMMA', 2, 'POINT')} + ' zł'"></div>
+  <h1>Dashboard</h1>
+
+  <div class="dashboard">
+    <div class="widget">
+      <h2>Faktury zapłacone</h2>
+      <div class="value" th:text="${#numbers.formatDecimal(paidTotal, 0, 'COMMA', 2, 'POINT')} + ' zł'"></div>
+    </div>
+
+    <div class="widget">
+      <h2>Faktury niezapłacone</h2>
+      <div class="value" th:text="${#numbers.formatDecimal(unpaidTotal, 0, 'COMMA', 2, 'POINT')} + ' zł'"></div>
+    </div>
+
+    <div class="widget">
+      <h2>Liczba faktur</h2>
+      <div class="value" th:text="${invoiceCount}"></div>
+    </div>
   </div>
 
-  <div class="widget">
-    <h2>Liczba faktur</h2>
-    <div class="value" th:text="${invoiceCount}"></div>
+  <div class="chart-container">
+    <h2>Przychody miesięczne</h2>
+    <canvas id="monthlyChart"></canvas>
   </div>
-</div>
-
-<div class="chart-container">
-  <h2>Przychody miesięczne</h2>
-  <canvas id="monthlyChart"></canvas>
 </div>
 
 <script th:inline="javascript">

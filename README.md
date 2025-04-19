@@ -43,7 +43,7 @@ spring.jpa.hibernate.ddl-auto=update</pre>
 
 ### ✅ Funkcjonalności
 - Dodawanie, edycja i usuwanie faktur
-- Filtrowanie faktur po statusie (OPŁACONA / NIEOPŁACONA)
+- Filtrowanie faktur po statusie (OPLACONA / NIEOPLACONA)
 - Automatyczne wyliczanie sumy faktury
 - Obsługa wielu przedmiotów w jednej fakturze (opcjonalnie w przyszłości)
 - Interfejs w języku polskim z poprawnym kodowaniem znaków UTF-8

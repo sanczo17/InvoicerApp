@@ -2,7 +2,7 @@ package org.example.controller;
 
 import jakarta.validation.Valid;
 import org.example.model.Role;
-import org.example.model.RoleType;
+import org.example.model.enums.RoleType;
 import org.example.model.User;
 import org.example.repository.RoleRepository;
 import org.example.repository.UserRepository;

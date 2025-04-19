@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.example.model.enums.InvoiceStatus;
+import org.example.model.enums.PaymentMethod;
 
 @Entity
 public class Invoice {
@@ -128,6 +130,6 @@ public class Invoice {
     }
 
     public boolean isOverdue() {
-        return status == InvoiceStatus.NIEOPŁACONA && LocalDate.now().isAfter(dueDate);
+        return status == InvoiceStatus.NIEOPLACONA && LocalDate.now().isAfter(dueDate);
     }
 }

@@ -1,6 +1,7 @@
 package org.example.model;
 
 import jakarta.persistence.*;
+import org.example.model.enums.RoleType;
 
 @Entity
 @Table(name = "roles")
