@@ -23,16 +23,7 @@
 </head>
 <body>
 <div class="container">
-  <div class="nav">
-    <a href="/">Dashboard</a>
-    <a href="/invoices" class="active">Faktury</a>
-    <a href="/customers">Klienci</a>
-    <a href="/invoices/new">Nowa faktura</a>
-    <span th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
-    <a href="/admin/users">Użytkownicy</a>
-    </span>
-    <a href="/auth/logout">Wyloguj</a>
-  </div>
+  <div th:replace="~{fragments/navigation :: navigation('invoices')}"></div>
 
   <h1>Lista faktur</h1>
 

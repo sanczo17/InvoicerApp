@@ -44,7 +44,6 @@ public class Invoice {
     public Invoice() {
     }
 
-    // Preinicjalizacja wartości
     @PrePersist
     @PreUpdate
     public void prePersist() {
@@ -102,7 +101,6 @@ public class Invoice {
     }
 
     public InvoiceStatus getStatus() {
-        // Dodatkowe zabezpieczenie przed nullem
         if (status == null) {
             return InvoiceStatus.NIEOPLACONA;
         }

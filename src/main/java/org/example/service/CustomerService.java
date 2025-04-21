@@ -37,7 +37,6 @@ public class CustomerService {
         customerRepository.deleteById(id);
     }
 
-    // Zwraca listę klientów, dla których nazwa zawiera podany fragment
     public List<Customer> findByNameContaining(String name) {
         return customerRepository.findAll().stream()
                 .filter(customer -> customer.getName() != null &&
@@ -45,7 +44,6 @@ public class CustomerService {
                 .toList();
     }
 
-    // Zwraca listę klientów, dla których NIP zawiera podany fragment
     public List<Customer> findByNipContaining(String nip) {
         return customerRepository.findAll().stream()
                 .filter(customer -> customer.getNip() != null &&
@@ -53,7 +51,6 @@ public class CustomerService {
                 .toList();
     }
 
-    // Zwraca listę klientów posortowanych według nazwy
     public List<Customer> findAllSortedByName() {
         return customerRepository.findAll().stream()
                 .sorted((c1, c2) -> {
@@ -64,7 +61,6 @@ public class CustomerService {
                 .toList();
     }
 
-    // Sprawdza, czy klient o podanym NIP już istnieje
     public boolean existsByNip(String nip) {
         if (nip == null || nip.isEmpty()) {
             return false;

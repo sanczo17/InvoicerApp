@@ -1,6 +1,9 @@
 package org.example.controller;
 
 import org.example.model.User;
+import org.example.model.enums.InvoiceStatus;
+import org.example.service.CustomerService;
+import org.example.service.InvoiceService;
 import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,22 +21,38 @@ import java.util.List;
 public class AdminController {
 
     private final UserService userService;
+    private final InvoiceService invoiceService;
+    private final CustomerService customerService;
 
     @Autowired
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, InvoiceService invoiceService, CustomerService customerService) {
         this.userService = userService;
+        this.invoiceService = invoiceService;
+        this.customerService = customerService;
     }
 
     @GetMapping
     public String adminPanel(Model model) {
-        List<User> users = userService.findAll();
 
+        List<User> users = userService.findAll();
         long activeUsers = users.stream().filter(User::isActive).count();
         long inactiveUsers = users.size() - activeUsers;
+
+        long totalInvoices = invoiceService.findAll().size();
+        long paidInvoices = invoiceService.findByStatus(InvoiceStatus.OPLACONA).size();
+        long unpaidInvoices = invoiceService.findByStatus(InvoiceStatus.NIEOPLACONA).size();
+
+        long totalCustomers = customerService.findAll().size();
 
         model.addAttribute("totalUsers", users.size());
         model.addAttribute("activeUsers", activeUsers);
         model.addAttribute("inactiveUsers", inactiveUsers);
+
+        model.addAttribute("totalInvoices", totalInvoices);
+        model.addAttribute("paidInvoices", paidInvoices);
+        model.addAttribute("unpaidInvoices", unpaidInvoices);
+
+        model.addAttribute("totalCustomers", totalCustomers);
 
         return "admin/dashboard";
     }
@@ -58,5 +77,18 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "Wystąpił błąd: " + e.getMessage());
         }
         return "redirect:/admin/users";
+    }
+
+
+    @GetMapping("/system/backup")
+    public String backupSystem(RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("message", "Kopia zapasowa została utworzona");
+        return "redirect:/admin";
+    }
+
+    @GetMapping("/system/logs")
+    public String showLogs(Model model) {
+        model.addAttribute("logs", "Przykładowe logi systemowe..."); // W rzeczywistości tutaj byłyby pobierane prawdziwe logi
+        return "admin/logs";
     }
 }

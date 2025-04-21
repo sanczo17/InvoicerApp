@@ -8,17 +8,7 @@
 </head>
 <body>
 <div class="container">
-  <div class="nav">
-    <a href="/" class="active">Dashboard</a>
-    <a href="/invoices">Faktury</a>
-    <a href="/customers">Klienci</a>
-    <a href="/invoices/new">Nowa faktura</a>
-    <span th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
-      <a href="/admin/users">Użytkownicy</a>
-    </span>
-    <a href="/auth/logout">Wyloguj</a>
-  </div>
-
+  <div th:replace="~{fragments/navigation :: navigation('dashboard')}"></div>
   <h1>Dashboard</h1>
 
   <div class="dashboard">

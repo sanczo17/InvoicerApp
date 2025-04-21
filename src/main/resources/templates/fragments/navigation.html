@@ -11,11 +11,27 @@
     <a href="/invoices" th:class="${activeTab == 'invoices'} ? 'active' : ''">Faktury</a>
     <a href="/customers" th:class="${activeTab == 'customers'} ? 'active' : ''">Klienci</a>
     <a href="/invoices/new" th:class="${activeTab == 'new-invoice'} ? 'active' : ''">Nowa faktura</a>
+
     <span sec:authorize="hasRole('ADMIN')">
       <a href="/admin/users" th:class="${activeTab == 'users'} ? 'active' : ''">Użytkownicy</a>
     </span>
-    <a href="/auth/logout">Wyloguj</a>
+
+    <div class="dropdown" style="float: right;">
+      <a href="#" class="dropdown-toggle">
+        <span sec:authentication="name">Użytkownik</span>
+        <span class="caret"></span>
+      </a>
+      <div class="dropdown-menu">
+        <a href="/profile/change-password">Zmień hasło</a>
+        <a href="/auth/logout">Wyloguj</a>
+      </div>
+    </div>
   </div>
+</div>
+
+<div th:fragment="messages">
+  <div th:if="${message}" class="success" th:text="${message}"></div>
+  <div th:if="${error}" class="error" th:text="${error}"></div>
 </div>
 </body>
 </html>

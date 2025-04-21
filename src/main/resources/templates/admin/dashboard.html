@@ -1,113 +1,95 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <title>Panel administracyjny - System Faktur</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .nav {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 10px;
-    }
-    .nav a {
-      display: inline-block;
-      margin-right: 10px;
-      padding: 8px 15px;
-      text-decoration: none;
-      color: #0d6efd;
-    }
-    .nav a:hover {
-      background-color: #e9ecef;
-      border-radius: 4px;
-    }
-    .nav a.active {
-      background-color: #0d6efd;
-      color: white;
-      border-radius: 4px;
-    }
-    .dashboard {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    .widget {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 20px;
-      width: calc(33% - 20px);
-    }
-    .panel {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 20px;
-      width: 100%;
-    }
-    .widget h2 {
-      border-bottom: 1px solid #dee2e6;
-      margin-top: 0;
-      padding-bottom: 10px;
-    }
-    .widget .value {
-      font-size: 2em;
-      font-weight: bold;
-      text-align: center;
-      margin: 20px 0;
-    }
-    .btn {
-      background-color: #4CAF50;
-      color: white;
-      padding: 8px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      margin: 2px;
-    }
-    .btn-blue {
-      background-color: #2196F3;
-    }
-    .btn-orange {
-      background-color: #ff9800;
-    }
-    .btn-red {
-      background-color: #f44336;
-    }
-    .admin-actions {
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
-      margin: 20px 0;
-    }
-    .admin-actions a {
-      margin: 10px;
-      min-width: 200px;
-      text-align: center;
-    }
-  </style>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
-  <!-- Nawigacja z aktywną zakładką -->
-  <div class="nav">
-    <a href="/">Dashboard</a>
-    <a href="/invoices">Faktury</a>
-    <a href="/customers">Klienci</a>
-    <a href="/invoices/new">Nowa faktura</a>
-    <a href="/admin" class="active">Panel administracyjny</a>
-    <a href="/auth
+  <div th:replace="~{fragments/navigation :: navigation('admin')}"></div>
+  <div th:replace="~{fragments/navigation :: messages}"></div>
+  <h1>Panel administracyjny</h1>
+
+  <div class="dashboard">
+    <div class="widget">
+      <h2>Użytkownicy</h2>
+      <div class="value" th:text="${totalUsers}">0</div>
+      <div class="details">
+        <span>Aktywni: <strong th:text="${activeUsers}">0</strong></span>
+        <span>Nieaktywni: <strong th:text="${inactiveUsers}">0</strong></span>
+      </div>
+    </div>
+
+    <div class="widget">
+      <h2>Faktury</h2>
+      <div class="value" th:text="${totalInvoices}">0</div>
+      <div class="details">
+        <span>Opłacone: <strong th:text="${paidInvoices}">0</strong></span>
+        <span>Nieopłacone: <strong th:text="${unpaidInvoices}">0</strong></span>
+      </div>
+    </div>
+
+    <div class="widget">
+      <h2>Klienci</h2>
+      <div class="value" th:text="${totalCustomers}">0</div>
+    </div>
+  </div>
+
+  <div class="admin-actions">
+    <h2>Akcje administracyjne</h2>
+
+    <div class="action-buttons">
+      <a href="/admin/users" class="btn">Zarządzaj użytkownikami</a>
+      <a href="/admin/roles/grant-admin" class="btn btn-blue">Przyznaj uprawnienia administratora</a>
+      <a href="/admin/system/backup" class="btn btn-secondary">Kopia zapasowa systemu</a>
+      <a href="/admin/system/logs" class="btn btn-secondary">Logi systemowe</a>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>Ostatnie logowania</h3>
+    </div>
+
+    <table>
+      <thead>
+      <tr>
+        <th>Użytkownik</th>
+        <th>Data logowania</th>
+        <th>Adres IP</th>
+        <th>Status</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>admin</td>
+        <td>2023-05-20 08:45</td>
+        <td>127.0.0.1</td>
+        <td><span class="active-status">Sukces</span></td>
+      </tr>
+      <tr>
+        <td>user1</td>
+        <td>2023-05-19 16:30</td>
+        <td>192.168.1.2</td>
+        <td><span class="active-status">Sukces</span></td>
+      </tr>
+      <tr>
+        <td>unknown</td>
+        <td>2023-05-19 15:22</td>
+        <td>192.168.1.5</td>
+        <td><span class="inactive-status">Nieudane</span></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Panel administracyjny załadowany');
+  });
+</script>
+</body>
+</html>

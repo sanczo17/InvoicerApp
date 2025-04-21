@@ -1,8 +1,10 @@
 package org.example.service;
 
+import org.example.model.Customer;
 import org.example.model.Invoice;
 import org.example.model.InvoiceItem;
 import org.example.model.enums.InvoiceStatus;
+import org.example.repository.CustomerRepository;
 import org.example.repository.InvoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,12 @@ import java.util.Optional;
 public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
+    private final CustomerRepository customerRepository;
 
     @Autowired
-    public InvoiceService(InvoiceRepository invoiceRepository) {
+    public InvoiceService(InvoiceRepository invoiceRepository, CustomerRepository customerRepository) {
         this.invoiceRepository = invoiceRepository;
+        this.customerRepository = customerRepository;
     }
 
     public List<Invoice> findAll() {
@@ -37,12 +41,16 @@ public class InvoiceService {
 
     @Transactional
     public Invoice save(Invoice invoice) {
-        // Generuj numer faktury, jeśli nie został podany
+        if (invoice.getCustomer() != null && invoice.getCustomer().getId() != null) {
+            Customer existingCustomer = customerRepository.findById(invoice.getCustomer().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Nieprawidłowe ID klienta: " + invoice.getCustomer().getId()));
+            invoice.setCustomer(existingCustomer);
+        }
+
         if (invoice.getInvoiceNumber() == null || invoice.getInvoiceNumber().isEmpty()) {
             invoice.setInvoiceNumber(generateInvoiceNumber(invoice));
         }
 
-        // Ustaw powiązanie między fakturą a jej pozycjami
         if (invoice.getItems() != null) {
             for (InvoiceItem item : invoice.getItems()) {
                 item.setInvoice(invoice);
@@ -67,12 +75,10 @@ public class InvoiceService {
         return invoiceRepository.searchInvoices(status, startDate, endDate, customerName, minAmount, maxAmount);
     }
 
-    // Generuje numer faktury w formacie FV/YYYY/MM/XX
     private String generateInvoiceNumber(Invoice invoice) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM");
         String datePart = invoice.getIssueDate().format(formatter);
 
-        // Zlicz istniejące faktury z tego samego miesiąca/roku
         long count = invoiceRepository.findAll().stream()
                 .filter(inv -> inv.getIssueDate() != null &&
                         inv.getIssueDate().getYear() == invoice.getIssueDate().getYear() &&
@@ -82,7 +88,6 @@ public class InvoiceService {
         return String.format("FV/%s/%02d", datePart, count + 1);
     }
 
-    // Zwraca faktury przeterminowane
     public List<Invoice> findOverdueinvoices() {
         LocalDate today = LocalDate.now();
         return invoiceRepository.findAll().stream()
@@ -91,7 +96,6 @@ public class InvoiceService {
                 .toList();
     }
 
-    // Zwraca faktury wystawione w danym miesiącu
     public List<Invoice> findInvoicesForMonth(int year, int month) {
         return invoiceRepository.findAll().stream()
                 .filter(invoice -> invoice.getIssueDate() != null &&

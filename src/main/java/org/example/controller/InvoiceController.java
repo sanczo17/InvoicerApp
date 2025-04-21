@@ -1,9 +1,11 @@
 package org.example.controller;
 
+import org.example.model.Customer;
 import org.example.model.Invoice;
 import org.example.model.InvoiceItem;
 import org.example.model.enums.InvoiceStatus;
 import org.example.model.enums.PaymentMethod;
+import org.example.service.CustomerService;
 import org.example.service.InvoiceService;
 import org.example.service.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +30,13 @@ public class InvoiceController {
 
     private final InvoiceService invoiceService;
     private final PdfService pdfService;
+    private final CustomerService customerService;
 
     @Autowired
-    public InvoiceController(InvoiceService invoiceService, PdfService pdfService) {
+    public InvoiceController(InvoiceService invoiceService, PdfService pdfService, CustomerService customerService) {
         this.invoiceService = invoiceService;
         this.pdfService = pdfService;
+        this.customerService = customerService;
     }
 
     @InitBinder
@@ -92,7 +96,11 @@ public class InvoiceController {
         Invoice invoice = new Invoice();
         invoice.getItems().add(new InvoiceItem());
 
+        // Pobierz listę wszystkich klientów
+        List<Customer> customers = customerService.findAll();
+
         model.addAttribute("invoice", invoice);
+        model.addAttribute("customers", customers);
         model.addAttribute("statuses", InvoiceStatus.values());
         model.addAttribute("paymentMethods", PaymentMethod.values());
         return "invoice-form";
@@ -126,7 +134,11 @@ public class InvoiceController {
                 invoice.getItems().add(new InvoiceItem());
             }
 
+            // Pobierz listę wszystkich klientów
+            List<Customer> customers = customerService.findAll();
+
             model.addAttribute("invoice", invoice);
+            model.addAttribute("customers", customers);
             model.addAttribute("statuses", InvoiceStatus.values());
             model.addAttribute("paymentMethods", PaymentMethod.values());
             return "invoice-form";

@@ -13,12 +13,16 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Service
 public class InitService {
+
+    private static final Logger logger = LoggerFactory.getLogger(InitService.class);
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
@@ -41,7 +45,8 @@ public class InitService {
     public void init() {
         initRoles();
 
-        if (!userRepository.existsByUsername("admin")) {
+
+        if (userRepository.count() == 0) {
             createAdminAccount();
         }
 
@@ -66,6 +71,7 @@ public class InitService {
         admin.setEmail("admin@example.com");
         admin.setPassword(passwordEncoder.encode("admin"));
         admin.setActive(true);
+        admin.setMustChangePassword(true); // Administrator musi zmienić hasło przy pierwszym logowaniu
 
         Set<Role> roles = new HashSet<>();
         roles.add(roleRepository.findByName(RoleType.ROLE_ADMIN)
@@ -73,6 +79,13 @@ public class InitService {
         admin.setRoles(roles);
 
         userRepository.save(admin);
+
+        logger.info("=======================================================");
+        logger.info("Utworzono domyślne konto administratora:");
+        logger.info("Użytkownik: admin");
+        logger.info("Hasło: admin");
+        logger.info("Przy pierwszym logowaniu należy zmienić hasło.");
+        logger.info("=======================================================");
     }
 
     private void createSampleCustomers() {

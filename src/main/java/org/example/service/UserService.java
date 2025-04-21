@@ -122,8 +122,6 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Rola ADMIN nie znaleziona"));
 
         Set<Role> roles = user.getRoles();
-
-        // Sprawdź, czy użytkownik już ma rolę administratora
         boolean hasAdminRole = roles.stream()
                 .anyMatch(role -> role.getName() == RoleType.ROLE_ADMIN);
 
@@ -140,16 +138,22 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Użytkownik nie istnieje"));
 
         Set<Role> roles = user.getRoles();
-
-        // Usuń rolę administratora
         roles.removeIf(role -> role.getName() == RoleType.ROLE_ADMIN);
 
-        // Upewnij się, że użytkownik ma przynajmniej rolę USER
         Role userRole = roleRepository.findByName(RoleType.ROLE_USER)
                 .orElseThrow(() -> new RuntimeException("Rola USER nie znaleziona"));
         roles.add(userRole);
 
         user.setRoles(roles);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void changePassword(String username, String newPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Użytkownik nie istnieje"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setMustChangePassword(false);
         userRepository.save(user);
     }
 }

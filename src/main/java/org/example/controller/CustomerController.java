@@ -3,6 +3,7 @@ package org.example.controller;
 import org.example.model.Customer;
 import org.example.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -77,5 +78,13 @@ public class CustomerController {
             redirectAttributes.addFlashAttribute("error", "Nie można usunąć klienta: " + e.getMessage());
         }
         return "redirect:/customers";
+    }
+
+    @GetMapping("/get/{id}")
+    @ResponseBody
+    public ResponseEntity<Customer> getCustomer(@PathVariable Long id) {
+        return customerService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
