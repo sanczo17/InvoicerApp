@@ -3,96 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Logowanie - System Faktur</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .nav {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 10px;
-    }
-    .nav a {
-      display: inline-block;
-      margin-right: 10px;
-      padding: 8px 15px;
-      text-decoration: none;
-      color: #0d6efd;
-    }
-    .nav a:hover {
-      background-color: #e9ecef;
-      border-radius: 4px;
-    }
-    .content-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    .login-form {
-      background-color: white;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      width: 350px;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    .alert {
-      padding: 10px;
-      background-color: #f44336;
-      color: white;
-      margin-bottom: 15px;
-      border-radius: 4px;
-    }
-    .success {
-      background-color: #4CAF50;
-    }
-    .btn {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-    }
-    .btn:hover {
-      background-color: #45a049;
-    }
-    .register-link {
-      text-align: center;
-      margin-top: 15px;
-    }
-  </style>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
   <div class="nav">
-    <a href="/">Dashboard</a>
-    <a href="/invoices">Faktury</a>
-    <a href="/invoices/new">Nowa faktura</a>
-    <a href="/auth/logout">Wyloguj</a>
+    <a href="/auth/login" class="active">Logowanie</a>
+    <a href="/auth/register">Rejestracja</a>
   </div>
 
   <div class="content-wrapper">
@@ -112,12 +29,12 @@
       <form th:action="@{/auth/login}" method="post">
         <div class="form-group">
           <label for="username">Nazwa użytkownika:</label>
-          <input type="text" id="username" name="username" required>
+          <input type="text" id="username" name="username" class="form-control" required>
         </div>
 
         <div class="form-group">
           <label for="password">Hasło:</label>
-          <input type="password" id="password" name="password" required>
+          <input type="password" id="password" name="password" class="form-control" required>
         </div>
 
         <button type="submit" class="btn">Zaloguj</button>

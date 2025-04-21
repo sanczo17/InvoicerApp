@@ -28,6 +28,11 @@ body {
     background-color: #e9ecef;
     border-radius: 4px;
 }
+.nav a.active {
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 4px;
+}
 
 /* Komunikaty */
 .success {
@@ -44,12 +49,21 @@ body {
     border-radius: 4px;
     margin-bottom: 15px;
 }
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+.alert.success {
+    background-color: #4CAF50;
+    color: white;
+}
 
 /* Tabele */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
+    margin: 20px 0;
 }
 table th, table td {
     padding: 8px;
@@ -58,6 +72,7 @@ table th, table td {
 }
 table th {
     background-color: #f5f5f5;
+    font-weight: bold;
 }
 
 /* Formularze */
@@ -86,6 +101,14 @@ table th {
     padding: 0 10px;
     min-width: 200px;
 }
+.row {
+    display: flex;
+    margin: 0 -10px;
+}
+.col {
+    flex: 1;
+    padding: 0 10px;
+}
 
 /* Przyciski */
 .btn {
@@ -97,21 +120,36 @@ table th {
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
+    margin: 2px;
 }
 .btn:hover {
     background-color: #45a049;
 }
 .btn-secondary {
     background-color: #6c757d;
+    color: white;
 }
 .btn-secondary:hover {
     background-color: #5a6268;
 }
 .btn-danger {
     background-color: #dc3545;
+    color: white;
 }
 .btn-danger:hover {
     background-color: #c82333;
+}
+.btn-warning {
+    background-color: #ffc107;
+    color: black;
+}
+.btn-blue {
+    background-color: #2196F3;
+    color: white;
+}
+.btn-orange {
+    background-color: #ff9800;
+    color: white;
 }
 
 /* Panele */
@@ -155,6 +193,20 @@ table th {
     padding: 3px 6px;
     border-radius: 3px;
 }
+.active-status {
+    background-color: #d4edda;
+    color: #155724;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 3px;
+}
+.inactive-status {
+    background-color: #f8d7da;
+    color: #721c24;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 3px;
+}
 
 /* Dashboard */
 .dashboard {
@@ -186,11 +238,12 @@ table th {
 .widget .value {
     font-size: 2em;
     font-weight: bold;
+    text-align: center;
+    margin: 20px 0;
 }
 
 /* Strony logowania/rejestracji */
 .content-wrapper {
-    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -203,14 +256,36 @@ table th {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 350px;
 }
-.alert {
-    padding: 10px;
-    background-color: #f44336;
-    color: white;
-    margin-bottom: 15px;
-    border-radius: 4px;
-}
 .register-link, .login-link {
     text-align: center;
     margin-top: 15px;
+}
+
+/* Wyszukiwanie */
+.search-form {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+/* Checkbox */
+.checkbox-group {
+    margin: 10px 0;
+}
+.checkbox-label {
+    margin-left: 5px;
+}
+
+/* Admin panel */
+.admin-actions {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+.admin-actions a {
+    margin: 10px;
+    min-width: 200px;
+    text-align: center;
 }

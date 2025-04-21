@@ -3,87 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Lista klientów - System Faktur</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .nav {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 10px;
-    }
-    .nav a {
-      display: inline-block;
-      margin-right: 10px;
-      padding: 8px 15px;
-      text-decoration: none;
-      color: #0d6efd;
-    }
-    .nav a:hover {
-      background-color: #e9ecef;
-      border-radius: 4px;
-    }
-    .nav a.active {
-      background-color: #0d6efd;
-      color: white;
-      border-radius: 4px;
-    }
-    .success {
-      color: green;
-      padding: 10px;
-      background-color: #d4edda;
-      border-radius: 4px;
-      margin-bottom: 15px;
-    }
-    .error {
-      color: red;
-      padding: 10px;
-      background-color: #f8d7da;
-      border-radius: 4px;
-      margin-bottom: 15px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-    }
-    table th, table td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    table th {
-      background-color: #f5f5f5;
-      font-weight: bold;
-    }
-    .btn {
-      background-color: #4CAF50;
-      color: white;
-      padding: 8px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      margin: 2px;
-    }
-    .btn-secondary {
-      background-color: #6c757d;
-      color: white;
-    }
-    .btn-danger {
-      background-color: #dc3545;
-      color: white;
-    }
-  </style>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
   <script>
     function confirmDelete(id) {
       if (confirm('Czy na pewno chcesz usunąć tego klienta?')) {
@@ -94,7 +14,6 @@
 </head>
 <body>
 <div class="container">
-  <!-- Nawigacja z aktywną zakładką -->
   <div class="nav">
     <a href="/">Dashboard</a>
     <a href="/invoices">Faktury</a>
