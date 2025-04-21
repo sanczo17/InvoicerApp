@@ -58,16 +58,13 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/process-login")
-                        .successHandler(successHandler)
-                        .failureHandler(failureHandler)
+                        .loginProcessingUrl("/auth/login")  // Dodaj tę linię
+                        .defaultSuccessUrl("/")
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"))
                         .logoutSuccessUrl("/auth/login?logout")
-                        .deleteCookies("JSESSIONID")
-                        .invalidateHttpSession(true)
                         .permitAll()
                 )
                 .authenticationProvider(authenticationProvider());

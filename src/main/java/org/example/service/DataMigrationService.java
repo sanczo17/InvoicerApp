@@ -36,6 +36,7 @@ public class DataMigrationService {
      * Można wyłączyć tę metodę, gdy nie jest już potrzebna.
      */
     @EventListener(ApplicationReadyEvent.class)
+    @Transactional
     public void fixInvoiceStatusesOnStartup() {
         logger.info("Rozpoczynam naprawę danych statusów faktur...");
 
@@ -58,7 +59,7 @@ public class DataMigrationService {
      * Rozszerza kolumnę do VARCHAR(20) jeśli jest za krótka lub zmienia typ z ENUM.
      */
     @Transactional
-    private void checkAndFixDatabaseSchema() {
+    public void checkAndFixDatabaseSchema() {
         try {
             // Sprawdź typ kolumny status
             Query schemaQuery = entityManager.createNativeQuery(
@@ -112,7 +113,7 @@ public class DataMigrationService {
      * Konwertuje wartości z polskimi znakami oraz puste/null na prawidłowe wartości.
      */
     @Transactional
-    private void fixInvoiceStatusesSafely() {
+    public void fixInvoiceStatusesSafely() {
         try {
             // 1. Sprawdzamy, jakie statusy mamy w bazie
             Query checkQuery = entityManager.createNativeQuery("SELECT DISTINCT status FROM invoice");
