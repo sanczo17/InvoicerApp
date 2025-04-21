@@ -58,7 +58,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/login")  // Dodaj tę linię
+                        .loginProcessingUrl("/auth/login")
                         .defaultSuccessUrl("/")
                         .permitAll()
                 )

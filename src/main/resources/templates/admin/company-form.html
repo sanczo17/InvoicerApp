@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>Dane firmy - System Faktur</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="~{fragments/navigation :: navigation('company')}"></div>
+
+  <div th:replace="~{fragments/navigation :: messages}"></div>
+
+  <h1>Dane firmy</h1>
+
+  <form th:action="@{/admin/company}" method="post" th:object="${company}">
+    <input type="hidden" th:field="*{id}"/>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Dane podstawowe</h3>
+      </div>
+
+      <!-- Nazwa firmy -->
+      <div class="form-group">
+        <label>Nazwa firmy:</label>
+        <input type="text" th:field="*{name}" class="form-control" required>
+        <div class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+      </div>
+
+      <!-- Adres firmy -->
+      <div class="form-group">
+        <label>Adres:</label>
+        <textarea th:field="*{address}" class="form-control" rows="3"></textarea>
+      </div>
+
+      <!-- NIP i REGON -->
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label>NIP:</label>
+            <input type="text" th:field="*{nip}" class="form-control">
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label>REGON:</label>
+            <input type="text" th:field="*{regon}" class="form-control">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Dane kontaktowe</h3>
+      </div>
+
+      <!-- Email i telefon -->
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label>Email:</label>
+            <input type="email" th:field="*{email}" class="form-control">
+            <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label>Telefon:</label>
+            <input type="text" th:field="*{phone}" class="form-control">
+          </div>
+        </div>
+      </div>
+
+      <!-- Strona www -->
+      <div class="form-group">
+        <label>Strona WWW:</label>
+        <input type="text" th:field="*{website}" class="form-control">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Dane bankowe</h3>
+      </div>
+
+      <!-- Nazwa banku -->
+      <div class="form-group">
+        <label>Nazwa banku:</label>
+        <input type="text" th:field="*{bankName}" class="form-control">
+      </div>
+
+      <!-- Numer konta -->
+      <div class="form-group">
+        <label>Numer konta:</label>
+        <input type="text" th:field="*{bankAccount}" class="form-control">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Informacje dodatkowe</h3>
+      </div>
+
+      <!-- Dodatkowe informacje -->
+      <div class="form-group">
+        <label>Dodatkowe informacje (np. KRS, kapitał zakładowy):</label>
+        <textarea th:field="*{additionalInfo}" class="form-control" rows="4"></textarea>
+      </div>
+
+      <!-- Logo firmy (zaślepka, przyszła funkcjonalność) -->
+      <div class="form-group">
+        <label>Ścieżka do logo (opcjonalne):</label>
+        <input type="text" th:field="*{logoPath}" class="form-control">
+        <small class="form-text text-muted">Funkcjonalność w przygotowaniu. W przyszłej wersji będzie możliwość wgrania pliku.</small>
+      </div>
+    </div>
+
+    <!-- Przyciski akcji -->
+    <div style="margin-top: 20px; text-align: center;">
+      <button type="submit" class="btn">Zapisz zmiany</button>
+      <a href="/admin" class="btn btn-secondary" style="margin-left: 10px;">Anuluj</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

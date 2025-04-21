@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Serwis obsługujący operacje na użytkownikach.
@@ -172,6 +173,7 @@ public class UserService {
 
     /**
      * Nadaje uprawnienia administratora użytkownikowi.
+     * Usuwa istniejące role i przypisuje tylko rolę ADMIN.
      *
      * @throws ResourceNotFoundException gdy użytkownik lub rola nie istnieją
      */
@@ -183,20 +185,18 @@ public class UserService {
         Role adminRole = roleRepository.findByName(RoleType.ROLE_ADMIN)
                 .orElseThrow(() -> new IllegalStateException("Rola ADMIN nie znaleziona"));
 
-        Set<Role> roles = user.getRoles();
-        boolean hasAdminRole = roles.stream()
-                .anyMatch(role -> role.getName() == RoleType.ROLE_ADMIN);
+        Set<Role> roles = new HashSet<>();
+        roles.add(adminRole);
 
-        if (!hasAdminRole) {
-            roles.add(adminRole);
-            user.setRoles(roles);
-            logger.info("Nadanie uprawnień administratora użytkownikowi: {}", user.getUsername());
-            userRepository.save(user);
-        }
+        user.setRoles(roles);
+
+        logger.info("Nadanie uprawnień administratora użytkownikowi: {}", user.getUsername());
+        userRepository.save(user);
     }
 
     /**
      * Odbiera uprawnienia administratora użytkownikowi.
+     * Usuwa istniejące role i przypisuje tylko rolę USER.
      *
      * @throws ResourceNotFoundException gdy użytkownik lub rola nie istnieją
      */
@@ -205,14 +205,14 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Użytkownik", userId));
 
-        Set<Role> roles = user.getRoles();
-        roles.removeIf(role -> role.getName() == RoleType.ROLE_ADMIN);
-
         Role userRole = roleRepository.findByName(RoleType.ROLE_USER)
                 .orElseThrow(() -> new IllegalStateException("Rola USER nie znaleziona"));
+
+        Set<Role> roles = new HashSet<>();
         roles.add(userRole);
 
         user.setRoles(roles);
+
         logger.info("Odebranie uprawnień administratora użytkownikowi: {}", user.getUsername());
         userRepository.save(user);
     }

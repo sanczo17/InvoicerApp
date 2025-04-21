@@ -18,7 +18,8 @@
 
     <!-- Opcje administratora widoczne tylko dla użytkowników z rolą ADMIN -->
     <span sec:authorize="hasRole('ADMIN')">
-      <a href="/admin/users" th:class="${activeTab == 'users'} ? 'active' : ''">Użytkownicy</a>
+      <a href="/admin" th:class="${activeTab == 'admin'} ? 'active' : ''">Panel admina</a>
+      <a href="/admin/company" th:class="${activeTab == 'company'} ? 'active' : ''">Dane firmy</a>
     </span>
 
     <!-- Menu użytkownika -->

@@ -2,8 +2,10 @@ package org.example.service;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import org.example.model.Company;
 import org.example.model.Invoice;
 import org.example.model.InvoiceItem;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -17,6 +19,13 @@ import java.util.Locale;
  */
 @Service
 public class PdfService {
+
+    private final CompanyService companyService;
+
+    @Autowired
+    public PdfService(CompanyService companyService) {
+        this.companyService = companyService;
+    }
 
     // Definiujemy czcionki z obsługą polskich znaków
     private static final Font HEADER_FONT;
@@ -53,6 +62,9 @@ public class PdfService {
             PdfWriter.getInstance(document, baos);
             document.open();
 
+            // Pobieramy dane firmy z bazy
+            Company company = companyService.getCompanyInfo();
+
             // Dodaj logo lub nagłówek
             Paragraph header = new Paragraph("FAKTURA", HEADER_FONT);
             header.setAlignment(Element.ALIGN_CENTER);
@@ -68,11 +80,27 @@ public class PdfService {
             document.add(new Paragraph("Metoda płatności: " + invoice.getPaymentMethod(), NORMAL_FONT));
             document.add(Chunk.NEWLINE);
 
-            // Dane sprzedawcy
+            // Dane sprzedawcy - teraz z bazy danych
             document.add(new Paragraph("Sprzedawca:", TITLE_FONT));
-            document.add(new Paragraph("Twoja Firma Sp. z o.o.", NORMAL_FONT));
-            document.add(new Paragraph("ul. Przykładowa 1, 00-000 Warszawa", NORMAL_FONT));
-            document.add(new Paragraph("NIP: 1234567890", NORMAL_FONT));
+            document.add(new Paragraph(company.getName(), NORMAL_FONT));
+            if (company.getAddress() != null && !company.getAddress().isEmpty()) {
+                document.add(new Paragraph(company.getAddress(), NORMAL_FONT));
+            }
+            if (company.getNip() != null && !company.getNip().isEmpty()) {
+                document.add(new Paragraph("NIP: " + company.getNip(), NORMAL_FONT));
+            }
+            if (company.getEmail() != null && !company.getEmail().isEmpty()) {
+                document.add(new Paragraph("Email: " + company.getEmail(), NORMAL_FONT));
+            }
+            if (company.getPhone() != null && !company.getPhone().isEmpty()) {
+                document.add(new Paragraph("Telefon: " + company.getPhone(), NORMAL_FONT));
+            }
+            if (company.getBankAccount() != null && !company.getBankAccount().isEmpty()) {
+                document.add(new Paragraph("Konto: " + company.getBankAccount(), NORMAL_FONT));
+                if (company.getBankName() != null && !company.getBankName().isEmpty()) {
+                    document.add(new Paragraph("Bank: " + company.getBankName(), NORMAL_FONT));
+                }
+            }
             document.add(Chunk.NEWLINE);
 
             // Dane nabywcy
@@ -129,6 +157,12 @@ public class PdfService {
                 document.add(Chunk.NEWLINE);
                 document.add(new Paragraph("Uwagi:", TITLE_FONT));
                 document.add(new Paragraph(invoice.getNotes(), NORMAL_FONT));
+            }
+
+            // Dodaj dodatkowe informacje z danych firmy
+            if (company.getAdditionalInfo() != null && !company.getAdditionalInfo().isEmpty()) {
+                document.add(Chunk.NEWLINE);
+                document.add(new Paragraph(company.getAdditionalInfo(), SMALL_FONT));
             }
 
             // Dodaj stopkę

@@ -55,6 +55,21 @@
         <a th:href="@{'/admin/users/toggle-status/' + ${user.id}}" class="btn btn-warning">
           <span th:text="${user.active ? 'Dezaktywuj' : 'Aktywuj'}"></span>
         </a>
+
+        <!-- Zmienne do sprawdzenia czy użytkownik ma rolę administratora -->
+        <div th:with="hasAdminRole=${false}" th:remove="tag">
+          <div th:each="role : ${user.roles}" th:remove="tag">
+            <div th:if="${role.name.name() == 'ROLE_ADMIN'}" th:with="hasAdminRole=${true}" th:remove="tag"></div>
+          </div>
+
+          <!-- Przyciski do zarządzania uprawnieniami administratora -->
+          <a th:if="${!hasAdminRole}" th:href="@{'/admin/roles/grant-admin?userId=' + ${user.id}}"
+             class="btn btn-blue">Nadaj uprawnienia admina</a>
+
+          <a th:if="${hasAdminRole}" th:href="@{'/admin/roles/revoke-admin?userId=' + ${user.id}}"
+             class="btn btn-secondary">Odbierz uprawnienia admina</a>
+        </div>
+
         <a href="javascript:void(0)"
            th:data-id="${user.id}"
            th:data-name="${user.username}"

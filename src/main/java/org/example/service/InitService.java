@@ -33,6 +33,7 @@ public class InitService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
+    private final CompanyService companyService;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.admin.username:admin}")
@@ -51,10 +52,12 @@ public class InitService {
     public InitService(RoleRepository roleRepository,
                        UserRepository userRepository,
                        CustomerRepository customerRepository,
+                       CompanyService companyService,
                        PasswordEncoder passwordEncoder) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
+        this.companyService = companyService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -69,6 +72,8 @@ public class InitService {
         initRoles();
         initAdminAccount();
         initSampleCustomers();
+        // Dodane: inicjalizacja danych firmy
+        companyService.initDefaultCompanyIfNotExists();
 
         logger.info("Inicjalizacja danych zakończona pomyślnie");
     }

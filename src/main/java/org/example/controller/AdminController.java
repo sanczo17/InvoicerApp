@@ -11,7 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -23,6 +26,8 @@ import java.util.List;
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")  // Zabezpiecza wszystkie metody w kontrolerze - tylko ADMIN
 public class AdminController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     private final UserService userService;
     private final InvoiceService invoiceService;
@@ -70,13 +75,21 @@ public class AdminController {
 
     /**
      * Nadaje uprawnienia administratora wybranemu użytkownikowi.
+     * Jeśli userId nie jest podane, przekierowuje do listy użytkowników.
      */
     @GetMapping("/roles/grant-admin")
-    public String grantAdminRole(Long userId, RedirectAttributes redirectAttributes) {
+    public String grantAdminRole(@RequestParam(required = false) Long userId, RedirectAttributes redirectAttributes) {
+        if (userId == null) {
+            // Jeśli ID nie zostało podane, przekieruj do listy użytkowników
+            return "redirect:/admin/users";
+        }
+
         try {
+            logger.info("Próba nadania uprawnień administratora dla użytkownika ID: {}", userId);
             userService.grantAdminRole(userId);
             redirectAttributes.addFlashAttribute("message", "Przyznano uprawnienia administratora");
         } catch (Exception e) {
+            logger.error("Błąd podczas nadawania uprawnień administratora: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Wystąpił błąd: " + e.getMessage());
         }
         return "redirect:/admin/users";
@@ -84,13 +97,22 @@ public class AdminController {
 
     /**
      * Odbiera uprawnienia administratora wybranemu użytkownikowi.
+     * Jeśli userId nie jest podane, przekierowuje do listy użytkowników.
      */
     @GetMapping("/roles/revoke-admin")
-    public String revokeAdminRole(Long userId, RedirectAttributes redirectAttributes) {
+    public String revokeAdminRole(@RequestParam(required = false) Long userId, RedirectAttributes redirectAttributes) {
+        if (userId == null) {
+            // Jeśli ID nie zostało podane, przekieruj do listy użytkowników
+            return "redirect:/admin/users";
+        }
+
         try {
+            logger.info("Próba odebrania uprawnień administratora dla użytkownika ID: {}", userId);
             userService.revokeAdminRole(userId);
+            logger.info("Pomyślnie odebrano uprawnienia administratora dla użytkownika ID: {}", userId);
             redirectAttributes.addFlashAttribute("message", "Odebrano uprawnienia administratora");
         } catch (Exception e) {
+            logger.error("Błąd podczas odbierania uprawnień administratora: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Wystąpił błąd: " + e.getMessage());
         }
         return "redirect:/admin/users";
