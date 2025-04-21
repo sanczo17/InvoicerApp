@@ -2,9 +2,10 @@ package org.example.controller;
 
 import org.example.model.Invoice;
 import org.example.model.InvoiceItem;
-import org.example.repository.InvoiceRepository;
-import org.example.service.PdfService;
 import org.example.model.enums.InvoiceStatus;
+import org.example.model.enums.PaymentMethod;
+import org.example.service.InvoiceService;
+import org.example.service.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -13,9 +14,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.beans.PropertyEditorSupport;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,17 +26,59 @@ import java.util.List;
 @RequestMapping("/invoices")
 public class InvoiceController {
 
-    @Autowired
+    private final InvoiceService invoiceService;
+    private final PdfService pdfService;
 
-    private InvoiceRepository invoiceRepository;
     @Autowired
-    private PdfService pdfService;
+    public InvoiceController(InvoiceService invoiceService, PdfService pdfService) {
+        this.invoiceService = invoiceService;
+        this.pdfService = pdfService;
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(PaymentMethod.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                try {
+                    setValue(PaymentMethod.valueOf(text));
+                } catch (IllegalArgumentException e) {
+                    try {
+                        setValue(PaymentMethod.fromDisplayName(text));
+                    } catch (IllegalArgumentException ex) {
+                        setValue(PaymentMethod.PRZELEW);
+                    }
+                }
+            }
+        });
+
+        binder.registerCustomEditor(InvoiceStatus.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                try {
+                    setValue(InvoiceStatus.valueOf(text));
+                } catch (IllegalArgumentException e) {
+                    try {
+                        for (InvoiceStatus status : InvoiceStatus.values()) {
+                            if (status.getDisplayName().equals(text)) {
+                                setValue(status);
+                                return;
+                            }
+                        }
+                        setValue(InvoiceStatus.NIEOPLACONA);
+                    } catch (Exception ex) {
+                        setValue(InvoiceStatus.NIEOPLACONA);
+                    }
+                }
+            }
+        });
+    }
 
     @GetMapping
     public String getAll(@RequestParam(required = false) InvoiceStatus status, Model model) {
         List<Invoice> invoices = (status == null) ?
-                invoiceRepository.findAll() :
-                invoiceRepository.findByStatus(status);
+                invoiceService.findAll() :
+                invoiceService.findByStatus(status);
 
         double total = invoices.stream().mapToDouble(Invoice::getTotal).sum();
         model.addAttribute("invoices", invoices);
@@ -49,6 +94,7 @@ public class InvoiceController {
 
         model.addAttribute("invoice", invoice);
         model.addAttribute("statuses", InvoiceStatus.values());
+        model.addAttribute("paymentMethods", PaymentMethod.values());
         return "invoice-form";
     }
 
@@ -62,11 +108,7 @@ public class InvoiceController {
                 return "redirect:/invoices/new";
             }
 
-            for (InvoiceItem item : invoice.getItems()) {
-                item.setInvoice(invoice);
-            }
-
-            invoiceRepository.save(invoice);
+            invoiceService.save(invoice);
             redirectAttributes.addFlashAttribute("message", "Faktura została zapisana");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Wystąpił błąd podczas zapisywania faktury: " + e.getMessage());
@@ -77,7 +119,7 @@ public class InvoiceController {
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
-            Invoice invoice = invoiceRepository.findById(id)
+            Invoice invoice = invoiceService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Nieprawidłowe ID faktury: " + id));
 
             if (invoice.getItems().isEmpty()) {
@@ -86,6 +128,7 @@ public class InvoiceController {
 
             model.addAttribute("invoice", invoice);
             model.addAttribute("statuses", InvoiceStatus.values());
+            model.addAttribute("paymentMethods", PaymentMethod.values());
             return "invoice-form";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Wystąpił błąd: " + e.getMessage());
@@ -96,17 +139,18 @@ public class InvoiceController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            invoiceRepository.deleteById(id);
+            invoiceService.deleteById(id);
             redirectAttributes.addFlashAttribute("message", "Faktura została usunięta");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Nie można usunąć faktury: " + e.getMessage());
         }
         return "redirect:/invoices";
     }
+
     @GetMapping("/pdf/{id}")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long id) {
         try {
-            Invoice invoice = invoiceRepository.findById(id)
+            Invoice invoice = invoiceService.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Nieprawidłowe ID faktury: " + id));
 
             byte[] pdfContent = pdfService.generateInvoicePdf(invoice);
@@ -133,7 +177,7 @@ public class InvoiceController {
             @RequestParam(required = false) Double maxAmount,
             Model model) {
 
-        List<Invoice> invoices = invoiceRepository.searchInvoices(
+        List<Invoice> invoices = invoiceService.searchInvoices(
                 status, startDate, endDate, customerName, minAmount, maxAmount);
 
         double total = invoices.stream().mapToDouble(Invoice::getTotal).sum();

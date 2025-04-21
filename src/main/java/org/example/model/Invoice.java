@@ -24,6 +24,7 @@ public class Invoice {
     private LocalDate dueDate = LocalDate.now().plusDays(14);
 
     @Enumerated(EnumType.STRING)
+    @Convert(converter = PaymentMethod.PaymentMethodConverter.class)
     private PaymentMethod paymentMethod = PaymentMethod.PRZELEW;
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -32,7 +33,8 @@ public class Invoice {
 
     @NotNull(message = "Status jest wymagany")
     @Enumerated(EnumType.STRING)
-    private InvoiceStatus status;
+    @Convert(converter = InvoiceStatus.InvoiceStatusConverter.class)
+    private InvoiceStatus status = InvoiceStatus.NIEOPLACONA;
 
     private String notes;
 
@@ -42,6 +44,14 @@ public class Invoice {
     public Invoice() {
     }
 
+    // Preinicjalizacja wartości
+    @PrePersist
+    @PreUpdate
+    public void prePersist() {
+        if (status == null) {
+            status = InvoiceStatus.NIEOPLACONA;
+        }
+    }
 
     public Long getId() {
         return id;
@@ -92,11 +102,15 @@ public class Invoice {
     }
 
     public InvoiceStatus getStatus() {
+        // Dodatkowe zabezpieczenie przed nullem
+        if (status == null) {
+            return InvoiceStatus.NIEOPLACONA;
+        }
         return status;
     }
 
     public void setStatus(InvoiceStatus status) {
-        this.status = status;
+        this.status = status != null ? status : InvoiceStatus.NIEOPLACONA;
     }
 
     public String getNotes() {

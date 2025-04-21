@@ -131,11 +131,14 @@
 </head>
 <body>
 <div class="container">
-  <!-- Nawigacja z aktywną zakładką -->
   <div class="nav">
     <a href="/">Dashboard</a>
     <a href="/invoices" class="active">Faktury</a>
+    <a href="/customers">Klienci</a>
     <a href="/invoices/new">Nowa faktura</a>
+    <span th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+    <a href="/admin/users">Użytkownicy</a>
+    </span>
     <a href="/auth/logout">Wyloguj</a>
   </div>
 
@@ -219,7 +222,7 @@
       </td>
       <td th:text="${inv.total}"></td>
       <td th:text="${inv.status}"
-          th:classappend="${inv.status?.name() == 'OPŁACONA'} ? 'status-paid' : 'status-unpaid'">
+          th:classappend="${inv.status?.name() == 'OPLACONA'} ? 'status-paid' : 'status-unpaid'">
       </td>
       <td>
         <a th:href="@{'/invoices/edit/' + ${inv.id}}" class="btn">Edytuj</a>

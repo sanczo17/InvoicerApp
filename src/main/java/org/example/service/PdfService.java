@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Service
 public class PdfService {
@@ -17,13 +18,16 @@ public class PdfService {
     private static final Font HEADER_FONT;
     private static final Font TITLE_FONT;
     private static final Font NORMAL_FONT;
+    private static final Font SMALL_FONT;
 
     static {
         try {
+            // Używamy kodowania CP1250 dla języka polskiego
             BaseFont baseFont = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.EMBEDDED);
             HEADER_FONT = new Font(baseFont, 18, Font.BOLD);
             TITLE_FONT = new Font(baseFont, 12, Font.BOLD);
             NORMAL_FONT = new Font(baseFont, 10, Font.NORMAL);
+            SMALL_FONT = new Font(baseFont, 8, Font.NORMAL);
         } catch (DocumentException | IOException e) {
             throw new RuntimeException("Błąd podczas inicjalizacji czcionek PDF", e);
         }
@@ -45,8 +49,10 @@ public class PdfService {
 
             // Informacje o fakturze
             document.add(new Paragraph("Numer faktury: " + invoice.getInvoiceNumber(), TITLE_FONT));
-            document.add(new Paragraph("Data wystawienia: " + invoice.getIssueDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), NORMAL_FONT));
-            document.add(new Paragraph("Termin płatności: " + invoice.getDueDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), NORMAL_FONT));
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy", new Locale("pl"));
+            document.add(new Paragraph("Data wystawienia: " + invoice.getIssueDate().format(dateFormatter), NORMAL_FONT));
+            document.add(new Paragraph("Termin płatności: " + invoice.getDueDate().format(dateFormatter), NORMAL_FONT));
             document.add(new Paragraph("Metoda płatności: " + invoice.getPaymentMethod(), NORMAL_FONT));
             document.add(Chunk.NEWLINE);
 
@@ -73,6 +79,8 @@ public class PdfService {
             // Tabela pozycji faktury
             PdfPTable table = new PdfPTable(5); // 5 kolumn
             table.setWidthPercentage(100);
+            float[] columnWidths = {10f, 40f, 15f, 15f, 20f};
+            table.setWidths(columnWidths);
 
             // Nagłówki tabeli
             table.addCell(createHeaderCell("Lp."));
@@ -98,6 +106,25 @@ public class PdfService {
             Paragraph summaryParagraph = new Paragraph("Razem do zapłaty: " + String.format("%.2f zł", invoice.getTotal()), TITLE_FONT);
             summaryParagraph.setAlignment(Element.ALIGN_RIGHT);
             document.add(summaryParagraph);
+
+            // Status
+            Paragraph statusParagraph = new Paragraph("Status: " + invoice.getStatus().getDisplayName(), NORMAL_FONT);
+            statusParagraph.setAlignment(Element.ALIGN_RIGHT);
+            document.add(statusParagraph);
+
+            // Dodaj uwagi, jeśli istnieją
+            if (invoice.getNotes() != null && !invoice.getNotes().isEmpty()) {
+                document.add(Chunk.NEWLINE);
+                document.add(new Paragraph("Uwagi:", TITLE_FONT));
+                document.add(new Paragraph(invoice.getNotes(), NORMAL_FONT));
+            }
+
+            // Dodaj stopkę
+            document.add(Chunk.NEWLINE);
+            document.add(Chunk.NEWLINE);
+            Paragraph footer = new Paragraph("Dokument wygenerowany elektronicznie przez system InvoicerApp.", SMALL_FONT);
+            footer.setAlignment(Element.ALIGN_CENTER);
+            document.add(footer);
 
             document.close();
             return baos.toByteArray();
