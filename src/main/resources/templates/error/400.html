@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nieprawidłowe żądanie - System Faktur</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <div th:replace="~{fragments/navigation :: navigation('error')}"></div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h1>Błąd 400 - Nieprawidłowe żądanie</h1>
+        </div>
+
+        <div class="error" th:if="${error}" th:text="${error}">
+            Twoje żądanie zawiera nieprawidłowe dane.
+        </div>
+
+        <p>Sprawdź dane formularza i spróbuj ponownie lub wróć do <a href="/">strony głównej</a>.</p>
+    </div>
+</div>
+</body>
+</html>

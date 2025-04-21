@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Wystąpił błąd - System Faktur</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="~{fragments/navigation :: navigation('error')}"></div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h1>Wystąpił błąd</h1>
+      <h2 th:if="${statusCode}" th:text="'Kod błędu: ' + ${statusCode}"></h2>
+    </div>
+
+    <div class="error" th:if="${error}" th:text="${error}">
+      Wystąpił nieoczekiwany błąd podczas przetwarzania żądania.
+    </div>
+
+    <p>Przepraszamy za niedogodności. Prosimy spróbować ponownie lub skontaktować się z administratorem systemu.</p>
+    <p><a href="/">Wróć do strony głównej</a></p>
+  </div>
+</div>
+</body>
+</html>

@@ -7,6 +7,7 @@
 </head>
 <body>
 <div class="container">
+  <!-- Prosta nawigacja dla stron logowania/rejestracji -->
   <div class="nav">
     <a href="/auth/login" class="active">Logowanie</a>
     <a href="/auth/register">Rejestracja</a>
@@ -16,16 +17,20 @@
     <div class="login-form">
       <h2>Logowanie</h2>
 
+      <!-- Komunikat o błędzie logowania -->
       <div th:if="${param.error}" class="alert">
         Niepoprawna nazwa użytkownika lub hasło.
       </div>
 
+      <!-- Komunikat o wylogowaniu -->
       <div th:if="${param.logout}" class="alert success">
         Zostałeś wylogowany.
       </div>
 
+      <!-- Komunikat sukcesu (np. po udanej rejestracji) -->
       <div th:if="${message}" class="alert success" th:text="${message}"></div>
 
+      <!-- Formularz logowania -->
       <form th:action="@{/auth/login}" method="post">
         <div class="form-group">
           <label for="username">Nazwa użytkownika:</label>
@@ -40,6 +45,7 @@
         <button type="submit" class="btn">Zaloguj</button>
       </form>
 
+      <!-- Link do rejestracji -->
       <div class="register-link">
         Nie masz konta? <a th:href="@{/auth/register}">Zarejestruj się</a>
       </div>

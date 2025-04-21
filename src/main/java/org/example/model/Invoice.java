@@ -9,6 +9,10 @@ import java.util.List;
 import org.example.model.enums.InvoiceStatus;
 import org.example.model.enums.PaymentMethod;
 
+/**
+ * Encja reprezentująca fakturę w systemie.
+ * Przechowuje informacje o fakturze, powiązanym kliencie i pozycjach faktury.
+ */
 @Entity
 public class Invoice {
     @Id
@@ -41,9 +45,15 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceItem> items = new ArrayList<>();
 
+    /**
+     * Konstruktor domyślny wymagany przez JPA.
+     */
     public Invoice() {
     }
 
+    /**
+     * Metoda wywoływana przed zapisem do bazy, aby ustawić domyślny status jeśli jest null.
+     */
     @PrePersist
     @PreUpdate
     public void prePersist() {
@@ -51,6 +61,8 @@ public class Invoice {
             status = InvoiceStatus.NIEOPLACONA;
         }
     }
+
+    // Gettery i settery
 
     public Long getId() {
         return id;
@@ -127,20 +139,32 @@ public class Invoice {
         this.items = items;
     }
 
+    /**
+     * Dodaje pozycję do faktury i ustawia odniesienie do faktury dla pozycji.
+     */
     public void addItem(InvoiceItem item) {
         items.add(item);
         item.setInvoice(this);
     }
 
+    /**
+     * Usuwa pozycję z faktury i usuwa odniesienie do faktury dla pozycji.
+     */
     public void removeItem(InvoiceItem item) {
         items.remove(item);
         item.setInvoice(null);
     }
 
+    /**
+     * Oblicza łączną kwotę faktury na podstawie jej pozycji.
+     */
     public double getTotal() {
         return items.stream().mapToDouble(InvoiceItem::getTotal).sum();
     }
 
+    /**
+     * Sprawdza czy faktura jest przeterminowana (nieopłacona i po terminie płatności).
+     */
     public boolean isOverdue() {
         return status == InvoiceStatus.NIEOPLACONA && LocalDate.now().isAfter(dueDate);
     }

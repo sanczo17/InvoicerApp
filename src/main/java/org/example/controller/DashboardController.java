@@ -17,6 +17,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Kontroler obsługujący stronę główną (dashboard).
+ * Prezentuje podsumowanie faktur i dane statystyczne.
+ */
 @Controller
 public class DashboardController {
 
@@ -27,6 +31,9 @@ public class DashboardController {
         this.invoiceService = invoiceService;
     }
 
+    /**
+     * Wyświetla dashboard z podsumowaniem faktur i wykresem miesięcznym.
+     */
     @GetMapping("/")
     public String dashboard(Model model) {
         List<Invoice> allInvoices = invoiceService.findAll();
@@ -43,6 +50,21 @@ public class DashboardController {
                 .sum();
 
         // Przygotowanie danych miesięcznych dla wykresu
+        Map<String, Double> monthlyData = prepareMonthlyDataForChart(allInvoices);
+
+        // Dodawanie danych do modelu
+        model.addAttribute("paidTotal", paidTotal);
+        model.addAttribute("unpaidTotal", unpaidTotal);
+        model.addAttribute("invoiceCount", allInvoices.size());
+        model.addAttribute("monthlyData", monthlyData);
+
+        return "dashboard";
+    }
+
+    /**
+     * Przygotowuje dane miesięczne do wykresu przychodów.
+     */
+    private Map<String, Double> prepareMonthlyDataForChart(List<Invoice> invoices) {
         Map<String, Double> monthlyData = new LinkedHashMap<>();
         LocalDate now = LocalDate.now();
         int currentYear = now.getYear();
@@ -55,7 +77,7 @@ public class DashboardController {
         }
 
         // Pogrupowanie faktur według miesięcy i obliczenie sum
-        Map<Month, Double> monthlyTotals = allInvoices.stream()
+        Map<Month, Double> monthlyTotals = invoices.stream()
                 .filter(invoice -> invoice.getIssueDate() != null &&
                         invoice.getIssueDate().getYear() == currentYear)
                 .collect(Collectors.groupingBy(
@@ -69,11 +91,6 @@ public class DashboardController {
             monthlyData.put(monthName, total);
         });
 
-        model.addAttribute("paidTotal", paidTotal);
-        model.addAttribute("unpaidTotal", unpaidTotal);
-        model.addAttribute("invoiceCount", allInvoices.size());
-        model.addAttribute("monthlyData", monthlyData);
-
-        return "dashboard";
+        return monthlyData;
     }
 }

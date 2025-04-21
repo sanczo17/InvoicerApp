@@ -8,11 +8,15 @@
 </head>
 <body>
 <div class="container">
+  <!-- Wstawianie fragmentu nawigacji z zaznaczonym panelem admina -->
   <div th:replace="~{fragments/navigation :: navigation('admin')}"></div>
+  <!-- Wstawianie fragmentu z komunikatami -->
   <div th:replace="~{fragments/navigation :: messages}"></div>
   <h1>Panel administracyjny</h1>
 
+  <!-- Dashboard z widgetami statystyk -->
   <div class="dashboard">
+    <!-- Widget użytkowników -->
     <div class="widget">
       <h2>Użytkownicy</h2>
       <div class="value" th:text="${totalUsers}">0</div>
@@ -22,6 +26,7 @@
       </div>
     </div>
 
+    <!-- Widget faktur -->
     <div class="widget">
       <h2>Faktury</h2>
       <div class="value" th:text="${totalInvoices}">0</div>
@@ -31,12 +36,14 @@
       </div>
     </div>
 
+    <!-- Widget klientów -->
     <div class="widget">
       <h2>Klienci</h2>
       <div class="value" th:text="${totalCustomers}">0</div>
     </div>
   </div>
 
+  <!-- Sekcja akcji administracyjnych -->
   <div class="admin-actions">
     <h2>Akcje administracyjne</h2>
 
@@ -48,6 +55,7 @@
     </div>
   </div>
 
+  <!-- Panel z ostatnimi logowaniami -->
   <div class="panel">
     <div class="panel-header">
       <h3>Ostatnie logowania</h3>
@@ -63,6 +71,7 @@
       </tr>
       </thead>
       <tbody>
+      <!-- Przykładowe dane logowań (w rzeczywistej aplikacji byłyby pobierane z bazy) -->
       <tr>
         <td>admin</td>
         <td>2023-05-20 08:45</td>
@@ -87,6 +96,7 @@
 </div>
 
 <script>
+  // Inicjalizacja strony
   document.addEventListener('DOMContentLoaded', function() {
     console.log('Panel administracyjny załadowany');
   });

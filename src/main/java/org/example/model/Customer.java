@@ -11,6 +11,10 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Encja reprezentująca klienta w systemie.
+ * Przechowuje informacje o firmie lub osobie, dla której wystawiane są faktury.
+ */
 @Entity
 public class Customer {
     @Id
@@ -34,9 +38,13 @@ public class Customer {
     @OneToMany(mappedBy = "customer")
     private List<Invoice> invoices = new ArrayList<>();
 
+    /**
+     * Konstruktor domyślny wymagany przez JPA.
+     */
     public Customer() {
     }
 
+    // Gettery i settery
 
     public Long getId() {
         return id;

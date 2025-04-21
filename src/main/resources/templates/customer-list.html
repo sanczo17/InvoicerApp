@@ -5,6 +5,10 @@
   <title>Lista klientów - System Faktur</title>
   <link rel="stylesheet" th:href="@{/css/styles.css}">
   <script>
+    /**
+     * Funkcja do potwierdzenia usunięcia klienta
+     * Wyświetla okno dialogowe i przekierowuje po potwierdzeniu
+     */
     function confirmDelete(id) {
       if (confirm('Czy na pewno chcesz usunąć tego klienta?')) {
         window.location.href = '/customers/delete/' + id;
@@ -14,17 +18,21 @@
 </head>
 <body>
 <div class="container">
+  <!-- Wstawianie fragmentu nawigacji z zaznaczoną listą klientów -->
   <div th:replace="~{fragments/navigation :: navigation('customers')}"></div>
 
   <h1>Lista klientów</h1>
 
+  <!-- Wyświetlanie komunikatów dla użytkownika -->
   <div th:if="${message}" class="success" th:text="${message}"></div>
   <div th:if="${error}" class="error" th:text="${error}"></div>
 
+  <!-- Przycisk dodawania nowego klienta -->
   <div style="margin: 20px 0;">
     <a href="/customers/new" class="btn">Dodaj klienta</a>
   </div>
 
+  <!-- Tabela klientów -->
   <table>
     <tr>
       <th>ID</th>
@@ -35,6 +43,7 @@
       <th>Telefon</th>
       <th>Akcje</th>
     </tr>
+    <!-- Iteracja po liście klientów -->
     <tr th:each="customer : ${customers}">
       <td th:text="${customer.id}"></td>
       <td th:text="${customer.name}"></td>
@@ -43,6 +52,7 @@
       <td th:text="${customer.email}"></td>
       <td th:text="${customer.phone}"></td>
       <td>
+        <!-- Przyciski akcji -->
         <a th:href="@{'/customers/edit/' + ${customer.id}}" class="btn">Edytuj</a>
         <a href="javascript:void(0)" th:onclick="'confirmDelete(' + ${customer.id} + ')'" class="btn btn-danger">Usuń</a>
       </td>

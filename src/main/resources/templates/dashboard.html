@@ -4,35 +4,43 @@
   <meta charset="UTF-8">
   <title>Dashboard - System Faktur</title>
   <link rel="stylesheet" th:href="@{/css/styles.css}">
+  <!-- Biblioteka Chart.js do tworzenia wykresów -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="container">
+  <!-- Wstawianie fragmentu nawigacji z zaznaczonym dashboardem -->
   <div th:replace="~{fragments/navigation :: navigation('dashboard')}"></div>
   <h1>Dashboard</h1>
 
+  <!-- Widgety z podsumowaniem -->
   <div class="dashboard">
+    <!-- Widget faktur opłaconych -->
     <div class="widget">
       <h2>Faktury opłacone</h2>
       <div class="value" th:text="${#numbers.formatDecimal(paidTotal, 0, 'COMMA', 2, 'POINT')} + ' zł'"></div>
     </div>
 
+    <!-- Widget faktur nieopłaconych -->
     <div class="widget">
       <h2>Faktury nieopłacone</h2>
       <div class="value" th:text="${#numbers.formatDecimal(unpaidTotal, 0, 'COMMA', 2, 'POINT')} + ' zł'"></div>
     </div>
 
+    <!-- Widget liczby faktur -->
     <div class="widget">
       <h2>Liczba faktur</h2>
       <div class="value" th:text="${invoiceCount}"></div>
     </div>
   </div>
 
+  <!-- Wykres przychodów miesięcznych -->
   <div class="chart-container">
     <h2>Przychody miesięczne</h2>
     <canvas id="monthlyChart"></canvas>
   </div>
 
+  <!-- Szybkie akcje -->
   <div class="chart-container">
     <h2>Szybkie akcje</h2>
     <div style="display: flex; justify-content: space-around; padding: 20px;">
@@ -43,10 +51,14 @@
   </div>
 </div>
 
+<!-- Skrypt inicjalizujący wykres -->
 <script th:inline="javascript">
+  // Pobieranie danych z modelu Thymeleaf
   const monthlyData = /*[[${monthlyData}]]*/ {};
   const labels = Object.keys(monthlyData);
   const values = Object.values(monthlyData);
+
+  // Inicjalizacja wykresu Chart.js
   const ctx = document.getElementById('monthlyChart').getContext('2d');
   new Chart(ctx, {
     type: 'bar',

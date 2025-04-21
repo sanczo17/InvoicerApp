@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Błąd serwera - System Faktur</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="~{fragments/navigation :: navigation('error')}"></div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h1>Błąd 500 - Wewnętrzny błąd serwera</h1>
+    </div>
+
+    <div class="error" th:if="${error}" th:text="${error}">
+      Wystąpił nieoczekiwany błąd po stronie serwera.
+    </div>
+
+    <p>Prosimy spróbować ponownie później lub skontaktować się z administratorem systemu.</p>
+    <p><a href="/">Wróć do strony głównej</a></p>
+  </div>
+</div>
+</body>
+</html>

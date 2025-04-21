@@ -11,15 +11,20 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+/**
+ * Serwis do generowania dokumentów PDF dla faktur.
+ * Używa biblioteki iText do tworzenia dokumentów.
+ */
 @Service
 public class PdfService {
 
-    // Dodajemy czcionki z obsługą polskich znaków
+    // Definiujemy czcionki z obsługą polskich znaków
     private static final Font HEADER_FONT;
     private static final Font TITLE_FONT;
     private static final Font NORMAL_FONT;
     private static final Font SMALL_FONT;
 
+    // Inicjalizacja statyczna czcionek
     static {
         try {
             // Używamy kodowania CP1250 dla języka polskiego
@@ -33,6 +38,13 @@ public class PdfService {
         }
     }
 
+    /**
+     * Generuje dokument PDF dla podanej faktury.
+     *
+     * @param invoice faktura, dla której generowany jest PDF
+     * @return tablica bajtów zawierająca dokument PDF
+     * @throws DocumentException w przypadku błędu podczas generowania dokumentu
+     */
     public byte[] generateInvoicePdf(Invoice invoice) throws DocumentException {
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -135,6 +147,9 @@ public class PdfService {
         }
     }
 
+    /**
+     * Tworzy komórkę nagłówka tabeli z określonym tekstem.
+     */
     private PdfPCell createHeaderCell(String text) {
         PdfPCell cell = new PdfPCell(new Phrase(text, TITLE_FONT));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -143,6 +158,9 @@ public class PdfService {
         return cell;
     }
 
+    /**
+     * Tworzy standardową komórkę tabeli z określonym tekstem.
+     */
     private PdfPCell createCell(String text) {
         PdfPCell cell = new PdfPCell(new Phrase(text, NORMAL_FONT));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);

@@ -6,8 +6,12 @@
     <title>Formularz faktury - System Faktur</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <script>
+        // Licznik do generowania unikalnych ID dla pozycji faktury
         let itemCounter = 0;
 
+        /**
+         * Dodaje nowy wiersz z pozycją faktury do formularza
+         */
         function addItemRow() {
             itemCounter++;
             const container = document.getElementById('items-container');
@@ -17,6 +21,7 @@
 
             const index = document.querySelectorAll('.item-row').length;
 
+            // HTML nowego wiersza z polami formularza
             newRow.innerHTML = `
                 <h4>Pozycja ${index + 1}</h4>
                 <input type="hidden" name="items[${index}].id" />
@@ -45,6 +50,9 @@
             renumberItems();
         }
 
+        /**
+         * Usuwa wiersz z pozycją faktury o podanym ID
+         */
         function removeItemRow(rowId) {
             const container = document.getElementById('items-container');
             const row = document.getElementById('item-row-' + rowId);
@@ -55,6 +63,9 @@
             }
         }
 
+        /**
+         * Przenumerowuje wszystkie pozycje faktury po dodaniu lub usunięciu
+         */
         function renumberItems() {
             const rows = document.querySelectorAll('.item-row');
             rows.forEach((row, index) => {
@@ -69,10 +80,14 @@
             });
         }
 
+        /**
+         * Pobiera dane klienta po wybraniu z listy rozwijanej
+         */
         function selectCustomer() {
             const customerId = document.getElementById('customerSelect').value;
 
             if (customerId === '') {
+                // Nowy klient - wyczyść pola
                 document.getElementById('customerData').style.display = 'block';
                 document.getElementById('customer.id').value = '';
                 document.getElementById('customer.name').value = '';
@@ -82,6 +97,7 @@
                 document.getElementById('customer.email').value = '';
                 document.getElementById('customer.phone').value = '';
             } else {
+                // Pobierz dane istniejącego klienta
                 fetch('/customers/get/' + customerId)
                     .then(response => response.json())
                     .then(data => {

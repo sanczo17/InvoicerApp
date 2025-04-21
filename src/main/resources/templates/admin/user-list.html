@@ -8,16 +8,20 @@
 </head>
 <body>
 <div class="container">
+  <!-- Wstawianie fragmentu nawigacji -->
   <div th:replace="~{fragments/navigation :: navigation('users')}"></div>
 
+  <!-- Wstawianie fragmentu z komunikatami -->
   <div th:replace="~{fragments/navigation :: messages}"></div>
 
   <h1>Zarządzanie użytkownikami</h1>
 
+  <!-- Przycisk powrotu do panelu -->
   <div style="margin: 20px 0;">
     <a href="/admin" class="btn btn-secondary">Powrót do panelu</a>
   </div>
 
+  <!-- Tabela użytkowników -->
   <table>
     <tr>
       <th>ID</th>
@@ -27,22 +31,26 @@
       <th>Role</th>
       <th>Akcje</th>
     </tr>
+    <!-- Iteracja po liście użytkowników -->
     <tr th:each="user : ${users}">
       <td th:text="${user.id}"></td>
       <td th:text="${user.username}"></td>
       <td th:text="${user.email}"></td>
       <td>
+        <!-- Wyświetlanie statusu z odpowiednim formatowaniem -->
         <span th:class="${user.active ? 'active-status' : 'inactive-status'}"
               th:text="${user.active ? 'Aktywny' : 'Nieaktywny'}">
         </span>
       </td>
       <td>
+        <!-- Wyświetlanie ról użytkownika -->
         <span th:each="role, roleStat : ${user.roles}">
             <span th:text="${role.name.name()=='ROLE_ADMIN' ? 'Administrator' : 'Użytkownik'}"></span>
             <span th:if="${!roleStat.last}">, </span>
         </span>
       </td>
       <td>
+        <!-- Przyciski akcji -->
         <a th:href="@{'/admin/users/edit/' + ${user.id}}" class="btn">Edytuj</a>
         <a th:href="@{'/admin/users/toggle-status/' + ${user.id}}" class="btn btn-warning">
           <span th:text="${user.active ? 'Dezaktywuj' : 'Aktywuj'}"></span>
@@ -58,6 +66,10 @@
 </div>
 
 <script>
+  /**
+   * Funkcja do potwierdzenia usunięcia użytkownika
+   * Wyświetla okno dialogowe z nazwą użytkownika i przekierowuje po potwierdzeniu
+   */
   function confirmDelete(id, username) {
     if (confirm('Czy na pewno chcesz usunąć użytkownika: ' + username + '?')) {
       window.location.href = '/admin/users/delete/' + id;

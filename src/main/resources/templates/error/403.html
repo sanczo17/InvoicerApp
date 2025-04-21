@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Dostęp zabroniony - System Faktur</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="~{fragments/navigation :: navigation('error')}"></div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h1>Błąd 403 - Dostęp zabroniony</h1>
+    </div>
+
+    <div class="error">
+      Nie masz uprawnień do wyświetlenia tej strony.
+      <p th:if="${error}" th:text="${error}"></p>
+    </div>
+
+    <p>Jeśli uważasz, że powinieneś mieć dostęp do tej strony, skontaktuj się z administratorem systemu.</p>
+    <p><a href="/">Wróć do strony głównej</a></p>
+  </div>
+</div>
+</body>
+</html>

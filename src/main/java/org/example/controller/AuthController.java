@@ -29,7 +29,22 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(Model model) {
+        model.addAttribute("user", new User());
+        return "auth/login";
+    }
+
+    @GetMapping("/login-error")
+    public String loginError(Model model) {
+        model.addAttribute("loginError", true);
+        model.addAttribute("user", new User());
+        return "auth/login";
+    }
+
+    @GetMapping("/login-inactive")
+    public String loginInactive(Model model) {
+        model.addAttribute("inactiveError", true);
+        model.addAttribute("user", new User());
         return "auth/login";
     }
 

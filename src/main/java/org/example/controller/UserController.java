@@ -13,9 +13,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+/**
+ * Kontroler zarządzania użytkownikami dostępny tylko dla administratorów.
+ * Pozwala na zarządzanie kontami użytkowników w systemie.
+ */
 @Controller
 @RequestMapping("/admin/users")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN')")  // Dostęp tylko dla administratorów
 public class UserController {
 
     private final UserService userService;
@@ -25,6 +29,9 @@ public class UserController {
         this.userService = userService;
     }
 
+    /**
+     * Wyświetla listę wszystkich użytkowników.
+     */
     @GetMapping
     public String listUsers(Model model) {
         List<User> users = userService.findAll();
@@ -32,11 +39,13 @@ public class UserController {
         return "admin/user-list";
     }
 
+    /**
+     * Wyświetla formularz edycji użytkownika.
+     */
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
-            User user = userService.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Nieprawidłowe ID użytkownika: " + id));
+            User user = userService.findById(id);
             model.addAttribute("user", user);
             return "admin/user-form";
         } catch (Exception e) {
@@ -45,6 +54,10 @@ public class UserController {
         }
     }
 
+
+    /**
+     * Obsługuje aktualizację danych użytkownika.
+     */
     @PostMapping("/update")
     public String updateUser(@Valid @ModelAttribute("user") User user,
                              BindingResult result,
@@ -63,6 +76,9 @@ public class UserController {
         return "redirect:/admin/users";
     }
 
+    /**
+     * Usuwa użytkownika z systemu.
+     */
     @GetMapping("/delete/{id}")
     public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -74,6 +90,9 @@ public class UserController {
         return "redirect:/admin/users";
     }
 
+    /**
+     * Przełącza status aktywności użytkownika.
+     */
     @GetMapping("/toggle-status/{id}")
     public String toggleUserStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {

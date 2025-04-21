@@ -13,6 +13,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.validation.Valid;
 import java.util.List;
 
+/**
+ * Kontroler obsługujący operacje na klientach.
+ * Odpowiada za zarządzanie danymi klientów w systemie.
+ */
 @Controller
 @RequestMapping("/customers")
 public class CustomerController {
@@ -24,6 +28,9 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
+    /**
+     * Wyświetla listę wszystkich klientów.
+     */
     @GetMapping
     public String getAllCustomers(Model model) {
         List<Customer> customers = customerService.findAll();
@@ -31,12 +38,18 @@ public class CustomerController {
         return "customer-list";
     }
 
+    /**
+     * Wyświetla formularz do tworzenia nowego klienta.
+     */
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("customer", new Customer());
         return "customer-form";
     }
 
+    /**
+     * Wyświetla formularz do edycji istniejącego klienta.
+     */
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
@@ -50,10 +63,14 @@ public class CustomerController {
         }
     }
 
+    /**
+     * Obsługuje tworzenie nowego lub aktualizację istniejącego klienta.
+     */
     @PostMapping
     public String createOrUpdateCustomer(@Valid @ModelAttribute Customer customer,
                                          BindingResult result,
                                          RedirectAttributes redirectAttributes) {
+        // Sprawdzenie błędów walidacji
         if (result.hasErrors()) {
             return "customer-form";
         }
@@ -69,6 +86,9 @@ public class CustomerController {
         return "redirect:/customers";
     }
 
+    /**
+     * Usuwa klienta o podanym identyfikatorze.
+     */
     @GetMapping("/delete/{id}")
     public String deleteCustomer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -80,6 +100,9 @@ public class CustomerController {
         return "redirect:/customers";
     }
 
+    /**
+     * Pobiera dane klienta w formacie JSON dla żądań AJAX.
+     */
     @GetMapping("/get/{id}")
     @ResponseBody
     public ResponseEntity<Customer> getCustomer(@PathVariable Long id) {

@@ -2,11 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
+  <!-- Dynamiczny tytuł strony zależny od trybu (nowy/edycja) -->
   <title th:text="${customer.id == null} ? 'Nowy klient' : 'Edycja klienta'">Formularz klienta - System Faktur</title>
   <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 <div class="container">
+  <!-- Pasek nawigacji z zaznaczonym modułem klientów -->
   <div class="nav">
     <a href="/">Dashboard</a>
     <a href="/invoices">Faktury</a>
@@ -15,9 +17,12 @@
     <a href="/auth/logout">Wyloguj</a>
   </div>
 
+  <!-- Dynamiczny nagłówek strony -->
   <h1 th:text="${customer.id == null} ? 'Nowy klient' : 'Edycja klienta'"></h1>
 
+  <!-- Formularz klienta -->
   <form th:action="@{/customers}" method="post" th:object="${customer}">
+    <!-- Ukryte pole ID (dla edycji istniejącego klienta) -->
     <input type="hidden" th:field="*{id}"/>
 
     <div class="panel">
@@ -25,17 +30,21 @@
         <h3>Dane klienta</h3>
       </div>
 
+      <!-- Pole nazwy klienta -->
       <div class="form-group">
         <label>Nazwa klienta:</label>
         <input type="text" th:field="*{name}" class="form-control" required>
+        <!-- Wyświetlanie błędów walidacji -->
         <div class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
       </div>
 
+      <!-- Pole adresu -->
       <div class="form-group">
         <label>Adres:</label>
         <textarea th:field="*{address}" class="form-control" rows="3"></textarea>
       </div>
 
+      <!-- Pola NIP i REGON w jednym wierszu -->
       <div class="row">
         <div class="col">
           <div class="form-group">
@@ -51,11 +60,13 @@
         </div>
       </div>
 
+      <!-- Pola email i telefon w jednym wierszu -->
       <div class="row">
         <div class="col">
           <div class="form-group">
             <label>Email:</label>
             <input type="email" th:field="*{email}" class="form-control">
+            <!-- Wyświetlanie błędów walidacji -->
             <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
           </div>
         </div>
@@ -68,6 +79,7 @@
       </div>
     </div>
 
+    <!-- Przyciski akcji -->
     <div style="margin-top: 20px; text-align: center;">
       <button type="submit" class="btn">Zapisz klienta</button>
       <a href="/customers" class="btn btn-secondary" style="margin-left: 10px;">Anuluj</a>

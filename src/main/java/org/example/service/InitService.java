@@ -8,6 +8,7 @@ import org.example.repository.CustomerRepository;
 import org.example.repository.RoleRepository;
 import org.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,8 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Serwis inicjalizujący dane początkowe aplikacji.
+ * Tworzy role, domyślne konto administratora i przykładowych klientów.
+ */
 @Service
 public class InitService {
 
@@ -28,6 +34,18 @@ public class InitService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.username:admin}")
+    private String adminUsername;
+
+    @Value("${app.admin.email:admin@example.com}")
+    private String adminEmail;
+
+    @Value("${app.admin.default-password:admin}")
+    private String adminDefaultPassword;
+
+    @Value("${app.admin.force-password-change:true}")
+    private boolean adminForcePasswordChange;
 
     @Autowired
     public InitService(RoleRepository roleRepository,
@@ -40,55 +58,98 @@ public class InitService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Inicjalizuje dane początkowe po uruchomieniu aplikacji.
+     */
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void init() {
+        logger.info("Inicjalizacja danych początkowych aplikacji...");
+
         initRoles();
+        initAdminAccount();
+        initSampleCustomers();
 
-
-        if (userRepository.count() == 0) {
-            createAdminAccount();
-        }
-
-        if (customerRepository.count() == 0) {
-            createSampleCustomers();
-        }
+        logger.info("Inicjalizacja danych zakończona pomyślnie");
     }
 
+    /**
+     * Tworzy role użytkowników, jeśli nie istnieją.
+     */
     private void initRoles() {
+        logger.debug("Inicjalizacja ról użytkowników...");
+
         if (roleRepository.findByName(RoleType.ROLE_ADMIN).isEmpty()) {
+            logger.info("Tworzenie roli ADMIN");
             roleRepository.save(new Role(RoleType.ROLE_ADMIN));
         }
 
         if (roleRepository.findByName(RoleType.ROLE_USER).isEmpty()) {
+            logger.info("Tworzenie roli USER");
             roleRepository.save(new Role(RoleType.ROLE_USER));
         }
     }
 
-    private void createAdminAccount() {
+    /**
+     * Tworzy konto administratora, jeśli nie istnieje.
+     */
+    private void initAdminAccount() {
+        logger.debug("Sprawdzanie konta administratora...");
+
+        // Sprawdzamy, czy konto admina już istnieje
+        Optional<User> existingAdmin = userRepository.findByUsername(adminUsername);
+
+        if (existingAdmin.isPresent()) {
+            logger.info("Konto administratora {} już istnieje", adminUsername);
+            return;
+        }
+
+        // Jeśli konto nie istnieje, tworzymy je
+        logger.info("Tworzenie konta administratora: {}", adminUsername);
+
         User admin = new User();
-        admin.setUsername("admin");
-        admin.setEmail("admin@example.com");
-        admin.setPassword(passwordEncoder.encode("admin"));
+        admin.setUsername(adminUsername);
+        admin.setEmail(adminEmail);
+        admin.setPassword(passwordEncoder.encode(adminDefaultPassword));
         admin.setActive(true);
-        admin.setMustChangePassword(true); // Administrator musi zmienić hasło przy pierwszym logowaniu
+        admin.setMustChangePassword(adminForcePasswordChange);
 
         Set<Role> roles = new HashSet<>();
-        roles.add(roleRepository.findByName(RoleType.ROLE_ADMIN)
-                .orElseThrow(() -> new RuntimeException("Rola ADMIN nie znaleziona")));
+        Role adminRole = roleRepository.findByName(RoleType.ROLE_ADMIN)
+                .orElseThrow(() -> new IllegalStateException("Rola ADMIN nie znaleziona"));
+        Role userRole = roleRepository.findByName(RoleType.ROLE_USER)
+                .orElseThrow(() -> new IllegalStateException("Rola USER nie znaleziona"));
+
+        roles.add(adminRole);
+        roles.add(userRole);
         admin.setRoles(roles);
 
         userRepository.save(admin);
 
         logger.info("=======================================================");
         logger.info("Utworzono domyślne konto administratora:");
-        logger.info("Użytkownik: admin");
-        logger.info("Hasło: admin");
-        logger.info("Przy pierwszym logowaniu należy zmienić hasło.");
+        logger.info("Użytkownik: {}", adminUsername);
+        logger.info("Hasło: {}", adminDefaultPassword);
+        if (adminForcePasswordChange) {
+            logger.info("Przy pierwszym logowaniu należy zmienić hasło.");
+        }
         logger.info("=======================================================");
     }
 
-    private void createSampleCustomers() {
+    /**
+     * Tworzy przykładowych klientów, jeśli nie istnieją w bazie.
+     */
+    private void initSampleCustomers() {
+        logger.debug("Sprawdzanie przykładowych klientów...");
+
+        // Sprawdzamy, czy są już klienci w bazie
+        if (customerRepository.count() > 0) {
+            logger.info("Baza zawiera już klientów. Pomijam inicjalizację przykładowych klientów.");
+            return;
+        }
+
+        logger.info("Inicjalizacja przykładowych klientów...");
+
         // Tworzymy przykładowych klientów
         Customer customer1 = new Customer();
         customer1.setName("Firma ABC Sp. z o.o.");
@@ -105,5 +166,7 @@ public class InitService {
         customer2.setEmail("jan.kowalski@example.com");
         customer2.setPhone("987-654-321");
         customerRepository.save(customer2);
+
+        logger.info("Dodano 2 przykładowych klientów");
     }
 }

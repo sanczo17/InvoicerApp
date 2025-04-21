@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nie znaleziono - System Faktur</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <div th:replace="~{fragments/navigation :: navigation('error')}"></div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h1>Błąd 404 - Nie znaleziono</h1>
+        </div>
+
+        <div class="error" th:if="${error}" th:text="${error}">
+            Zasób, którego szukasz, nie istnieje lub został usunięty.
+        </div>
+
+        <p>Sprawdź adres URL lub wróć do <a href="/">strony głównej</a>.</p>
+    </div>
+</div>
+</body>
+</html>

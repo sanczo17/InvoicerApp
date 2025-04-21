@@ -15,8 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Serwis odpowiedzialny za migrację danych w systemie.
+ * Uruchamiany automatycznie po starcie aplikacji w celu naprawienia potencjalnych problemów w bazie danych.
+ */
 @Service
 public class DataMigrationService {
 
@@ -50,6 +53,10 @@ public class DataMigrationService {
         }
     }
 
+    /**
+     * Sprawdza i naprawia schemat bazy danych, w szczególności kolumnę status w tabeli invoice.
+     * Rozszerza kolumnę do VARCHAR(20) jeśli jest za krótka lub zmienia typ z ENUM.
+     */
     @Transactional
     private void checkAndFixDatabaseSchema() {
         try {
@@ -100,6 +107,10 @@ public class DataMigrationService {
         }
     }
 
+    /**
+     * Naprawia wartości w kolumnie status, zapewniając ich zgodność z wymaganiami aplikacji.
+     * Konwertuje wartości z polskimi znakami oraz puste/null na prawidłowe wartości.
+     */
     @Transactional
     private void fixInvoiceStatusesSafely() {
         try {

@@ -5,6 +5,10 @@
   <meta charset="UTF-8">
 </head>
 <body>
+<!--
+  Fragment zawierający wspólny pasek nawigacyjny dla wszystkich stron.
+  Parametr activeTab określa, która pozycja menu powinna być podświetlona.
+-->
 <div th:fragment="navigation(activeTab)">
   <div class="nav">
     <a href="/" th:class="${activeTab == 'dashboard'} ? 'active' : ''">Dashboard</a>
@@ -12,10 +16,12 @@
     <a href="/customers" th:class="${activeTab == 'customers'} ? 'active' : ''">Klienci</a>
     <a href="/invoices/new" th:class="${activeTab == 'new-invoice'} ? 'active' : ''">Nowa faktura</a>
 
+    <!-- Opcje administratora widoczne tylko dla użytkowników z rolą ADMIN -->
     <span sec:authorize="hasRole('ADMIN')">
       <a href="/admin/users" th:class="${activeTab == 'users'} ? 'active' : ''">Użytkownicy</a>
     </span>
 
+    <!-- Menu użytkownika -->
     <div class="dropdown" style="float: right;">
       <a href="#" class="dropdown-toggle">
         <span sec:authentication="name">Użytkownik</span>
@@ -29,6 +35,10 @@
   </div>
 </div>
 
+<!--
+  Fragment zawierający komunikaty dla użytkownika (success i error).
+  Używany na większości stron do wyświetlania informacji zwrotnych.
+-->
 <div th:fragment="messages">
   <div th:if="${message}" class="success" th:text="${message}"></div>
   <div th:if="${error}" class="error" th:text="${error}"></div>

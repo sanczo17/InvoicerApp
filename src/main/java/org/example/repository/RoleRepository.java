@@ -7,7 +7,18 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * Repozytorium dla encji Role.
+ * Dostarcza metody do operacji na bazie danych dla ról użytkowników.
+ */
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
+
+    /**
+     * Znajduje rolę po nazwie (typie).
+     *
+     * @param name typ roli do znalezienia
+     * @return opcjonalna rola (może nie istnieć w bazie)
+     */
     Optional<Role> findByName(RoleType name);
 }

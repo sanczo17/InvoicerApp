@@ -1,5 +1,7 @@
 package org.example.config;
 
+import org.example.security.LoginAuditAuthenticationFailureHandler;
+import org.example.security.LoginAuditAuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -12,15 +14,24 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 
+/**
+ * Konfiguracja bezpieczeństwa aplikacji.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
+    private final LoginAuditAuthenticationSuccessHandler successHandler;
+    private final LoginAuditAuthenticationFailureHandler failureHandler;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService,
+                          LoginAuditAuthenticationSuccessHandler successHandler,
+                          LoginAuditAuthenticationFailureHandler failureHandler) {
         this.userDetailsService = userDetailsService;
+        this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
     }
 
     @Bean
@@ -47,12 +58,16 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/auth/login")
-                        .defaultSuccessUrl("/")
+                        .loginProcessingUrl("/auth/process-login")
+                        .successHandler(successHandler)
+                        .failureHandler(failureHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout"))
                         .logoutSuccessUrl("/auth/login?logout")
+                        .deleteCookies("JSESSIONID")
+                        .invalidateHttpSession(true)
                         .permitAll()
                 )
                 .authenticationProvider(authenticationProvider());

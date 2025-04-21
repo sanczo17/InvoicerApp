@@ -10,10 +10,33 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Repozytorium dla encji Invoice.
+ * Dostarcza metody do operacji na bazie danych dla faktur.
+ */
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
+
+    /**
+     * Znajduje faktury o określonym statusie.
+     *
+     * @param status status faktury do wyszukania
+     * @return lista faktur o podanym statusie
+     */
     List<Invoice> findByStatus(InvoiceStatus status);
 
+    /**
+     * Zaawansowane wyszukiwanie faktur z wieloma kryteriami.
+     * Parametry mogą być null, co oznacza brak filtrowania po danym kryterium.
+     *
+     * @param status opcjonalny status faktury
+     * @param startDate opcjonalna minimalna data wystawienia faktury
+     * @param endDate opcjonalna maksymalna data wystawienia faktury
+     * @param customerName opcjonalna fraza w nazwie klienta
+     * @param minAmount opcjonalna minimalna kwota faktury
+     * @param maxAmount opcjonalna maksymalna kwota faktury
+     * @return lista faktur pasujących do kryteriów
+     */
     @Query("SELECT i FROM Invoice i WHERE " +
             "(:status IS NULL OR i.status = :status) AND " +
             "(:startDate IS NULL OR i.issueDate >= :startDate) AND " +

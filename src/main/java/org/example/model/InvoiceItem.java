@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
+/**
+ * Encja reprezentująca pozycję na fakturze.
+ * Przechowuje informacje o produkcie/usłudze, ilości i cenie.
+ */
 @Entity
 public class InvoiceItem {
     @Id
@@ -23,8 +27,13 @@ public class InvoiceItem {
     @JoinColumn(name = "invoice_id")
     private Invoice invoice;
 
+    /**
+     * Konstruktor domyślny wymagany przez JPA.
+     */
     public InvoiceItem() {
     }
+
+    // Gettery i settery
 
     public Long getId() {
         return id;
@@ -66,6 +75,9 @@ public class InvoiceItem {
         this.invoice = invoice;
     }
 
+    /**
+     * Oblicza łączną wartość pozycji (ilość * cena).
+     */
     public double getTotal() {
         return quantity * price;
     }
