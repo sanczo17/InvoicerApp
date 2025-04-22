@@ -2,6 +2,7 @@ package org.example.controller;
 
 import jakarta.validation.Valid;
 import org.example.model.User;
+import org.example.model.enums.RoleType;
 import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,7 +12,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Kontroler zarządzania użytkownikami dostępny tylko dla administratorów.
@@ -35,7 +38,17 @@ public class UserController {
     @GetMapping
     public String listUsers(Model model) {
         List<User> users = userService.findAll();
+
+        Map<Long, Boolean> adminRoles = new HashMap<>();
+
+        for (User user : users) {
+            boolean isAdmin = user.getRoles().stream()
+                    .anyMatch(role -> role.getName() == RoleType.ROLE_ADMIN);
+            adminRoles.put(user.getId(), isAdmin);
+        }
+
         model.addAttribute("users", users);
+        model.addAttribute("adminRoles", adminRoles);
         return "admin/user-list";
     }
 

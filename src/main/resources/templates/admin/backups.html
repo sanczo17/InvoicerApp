@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Kopie zapasowe - System Faktur</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+  <link rel="icon" href="data:,">
+  <script>
+    function confirmRestore(fileName) {
+      return confirm('UWAGA! Przywrócenie kopii zapasowej spowoduje zastąpienie WSZYSTKICH danych w systemie. Hasła użytkowników zostaną zresetowane. Czy na pewno chcesz przywrócić dane z kopii: ' + fileName + '?');
+    }
+
+    function confirmDelete(fileName) {
+      return confirm('Czy na pewno chcesz usunąć kopię zapasową: ' + fileName + '? Tej operacji nie można cofnąć!');
+    }
+  </script>
+</head>
+<body>
+<div class="container">
+  <div th:replace="~{fragments/navigation :: navigation('admin')}"></div>
+
+  <h1>Kopie zapasowe systemu</h1>
+
+  <div th:replace="~{fragments/navigation :: messages}"></div>
+
+  <div style="margin: 20px 0;">
+    <a href="/admin" class="btn btn-secondary">Powrót do panelu</a>
+    <a href="/admin/system/backups/create" class="btn">Utwórz nową kopię zapasową</a>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>Dostępne kopie zapasowe</h3>
+    </div>
+
+    <div class="alert" style="background-color: #fff3cd; color: #856404; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+      <strong>Uwaga!</strong> Przywrócenie kopii zapasowej spowoduje zastąpienie WSZYSTKICH danych w systemie.
+      Przed przywróceniem kopii, zostanie automatycznie utworzona kopia aktualnego stanu systemu.
+      Po przywróceniu kopii zapasowej, hasła użytkowników zostaną zresetowane i wymagana będzie ich zmiana przy następnym logowaniu.
+    </div>
+
+    <div th:if="${#lists.isEmpty(backupFiles)}">
+      <p>Brak dostępnych kopii zapasowych.</p>
+    </div>
+
+    <table th:unless="${#lists.isEmpty(backupFiles)}">
+      <thead>
+      <tr>
+        <th>Nazwa pliku</th>
+        <th>Rozmiar</th>
+        <th>Data utworzenia</th>
+        <th>Akcje</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="file : ${backupFiles}">
+        <td th:text="${file.name}"></td>
+        <td th:text="${file.size}"></td>
+        <td th:text="${file.date}"></td>
+        <td>
+          <div style="display: flex; gap: 5px;">
+            <a th:href="@{'/admin/system/backups/download?fileName=' + ${file.name}}" class="btn">Pobierz</a>
+
+            <form th:action="@{/admin/system/backups/restore}" method="post" style="display: inline;"
+                  onsubmit="return confirmRestore(this.elements.fileName.value);">
+              <input type="hidden" name="fileName" th:value="${file.name}" />
+              <button type="submit" class="btn btn-danger">Przywróć</button>
+            </form>
+
+            <form th:action="@{/admin/system/backups/delete}" method="post" style="display: inline;"
+                  onsubmit="return confirmDelete(this.elements.fileName.value);">
+              <input type="hidden" name="fileName" th:value="${file.name}" />
+              <button type="submit" class="btn btn-danger">Usuń</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>
