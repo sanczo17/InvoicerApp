@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
@@ -41,6 +42,9 @@ public class BackupService {
     private final LoginAuditRepository loginAuditRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private Map<Long, Long> customerIdMapping; // Przechowuje mapowanie ID klientów (stare->nowe)
+    private Map<Long, Long> roleIdMapping = new HashMap<>(); // Przechowuje mapowanie ID ról (stare->nowe)
+
     @Autowired
     public BackupService(UserRepository userRepository,
                          CustomerRepository customerRepository,
@@ -65,7 +69,7 @@ public class BackupService {
      * @return ścieżka do utworzonego pliku kopii zapasowej
      * @throws IOException w przypadku błędu podczas zapisu pliku
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public String createBackup() throws IOException {
         logger.info("Rozpoczęcie tworzenia kopii zapasowej danych systemu...");
 
@@ -113,7 +117,7 @@ public class BackupService {
      * @return informacja o powodzeniu operacji
      * @throws IOException w przypadku błędu podczas odczytu pliku
      */
-    @Transactional
+    @Transactional(propagation = Propagation.NEVER) // Wyłączamy zarządzanie transakcjami na poziomie metody
     public String restoreFromBackup(String backupFileName) throws IOException {
         logger.info("Rozpoczęcie przywracania danych z kopii zapasowej: {}", backupFileName);
 
@@ -123,30 +127,62 @@ public class BackupService {
             throw new IOException("Plik kopii zapasowej nie istnieje: " + backupPath);
         }
 
-        // Utworzenie kopii zapasowej aktualnych danych przed przywróceniem
-        createBackup();
-
         // Konfiguracja ObjectMapper do deserializacji JSON
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
 
-        // Wczytanie danych z pliku
-        BackupData backupData = mapper.readValue(backupPath.toFile(), BackupData.class);
-
         try {
-            // Czyszczenie bazy danych
-            clearDatabase();
+            // Wczytanie danych z pliku
+            BackupData backupData = mapper.readValue(backupPath.toFile(), BackupData.class);
 
-            // Przywracanie danych z kopii zapasowej
-            restoreRoles(backupData.roles);
-            restoreCompany(backupData.company);
-            restoreCustomers(backupData.customers);
-            restoreUsers(backupData.users);
-            restoreInvoices(backupData.invoices);
-            restoreLoginAudits(backupData.loginAudits);
+            // Przywracamy każdy typ danych oddzielnie, pomijając Company
+            boolean success = true;
 
-            logger.info("Dane zostały pomyślnie przywrócone z kopii zapasowej");
-            return "Dane zostały pomyślnie przywrócone z kopii zapasowej: " + backupFileName;
+            // 1. Przywróć role
+            try {
+                restoreRolesInTransaction(backupData.roles);
+            } catch (Exception e) {
+                logger.error("Błąd podczas przywracania ról: {}", e.getMessage(), e);
+                success = false;
+            }
+
+            // 2. Przywróć klientów
+            try {
+                restoreCustomersInTransaction(backupData.customers);
+            } catch (Exception e) {
+                logger.error("Błąd podczas przywracania klientów: {}", e.getMessage(), e);
+                success = false;
+            }
+
+            // 3. Przywróć użytkowników
+            try {
+                restoreUsersInTransaction(backupData.users);
+            } catch (Exception e) {
+                logger.error("Błąd podczas przywracania użytkowników: {}", e.getMessage(), e);
+                success = false;
+            }
+
+            // 4. Przywróć faktury
+            try {
+                restoreInvoicesInTransaction(backupData.invoices);
+            } catch (Exception e) {
+                logger.error("Błąd podczas przywracania faktur: {}", e.getMessage(), e);
+                success = false;
+            }
+
+            // 5. Przywróć logi logowań
+            try {
+                restoreLoginAuditsInTransaction(backupData.loginAudits);
+            } catch (Exception e) {
+                logger.error("Błąd podczas przywracania logów logowań: {}", e.getMessage(), e);
+                success = false;
+            }
+
+            if (success) {
+                return "Dane zostały pomyślnie przywrócone z kopii zapasowej: " + backupFileName;
+            } else {
+                return "Dane zostały częściowo przywrócone z kopii zapasowej. Sprawdź logi, aby uzyskać więcej informacji.";
+            }
         } catch (Exception e) {
             logger.error("Błąd podczas przywracania danych: {}", e.getMessage(), e);
             throw new IOException("Błąd podczas przywracania danych: " + e.getMessage(), e);
@@ -154,183 +190,286 @@ public class BackupService {
     }
 
     /**
-     * Usuwa wszystkie dane z bazy danych.
+     * Pomocnicza metoda do przywracania ról w osobnej transakcji.
      */
-    private void clearDatabase() {
-        logger.info("Czyszczenie bazy danych przed przywróceniem");
-        invoiceRepository.deleteAll();
-        customerRepository.deleteAll();
-        loginAuditRepository.deleteAll();
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void restoreRolesInTransaction(List<Role> roles) {
+        logger.info("Przywracanie ról...");
 
-        // Usuwamy powiązania użytkownik-rola
-        List<User> users = userRepository.findAll();
-        for (User user : users) {
-            user.setRoles(new HashSet<>());
-            userRepository.save(user);
+        // Najpierw usuń istniejące dane
+        try {
+            roleRepository.deleteAll();
+            roleRepository.flush();
+        } catch (Exception e) {
+            logger.warn("Nie można usunąć istniejących ról: {}", e.getMessage());
+            // Kontynuujemy, próbując tylko dodać role
         }
 
-        userRepository.deleteAll();
-
-        // Nie usuwamy ról, będą potrzebne do przywrócenia danych
-
-        // Usuwamy dane firmy, ale zachowujemy ID = 1, jeśli istnieje
-        Company company = companyRepository.getCompanyInfo();
-        if (company != null && company.getId() != null) {
-            // Czyszczenie pól company
-            company.setName(null);
-            company.setAddress(null);
-            company.setNip(null);
-            company.setRegon(null);
-            company.setEmail(null);
-            company.setPhone(null);
-            company.setWebsite(null);
-            company.setBankName(null);
-            company.setBankAccount(null);
-            company.setAdditionalInfo(null);
-            company.setLogoPath(null);
-            companyRepository.save(company);
-        }
-    }
-
-    /**
-     * Przywraca role z kopii zapasowej.
-     */
-    private void restoreRoles(List<Role> roles) {
-        logger.info("Przywracanie ról");
-
-        // Sprawdzamy, czy role już istnieją - jeśli nie, tworzymy je
+        // Teraz przywróć dane z kopii
         for (RoleType roleType : RoleType.values()) {
-            if (roleRepository.findByName(roleType).isEmpty()) {
-                Role role = new Role(roleType);
-                roleRepository.save(role);
+            try {
+                // Sprawdź, czy rola już istnieje
+                Optional<Role> existingRole = roleRepository.findByName(roleType);
+                if (existingRole.isEmpty()) {
+                    Role role = new Role(roleType);
+                    Role savedRole = roleRepository.save(role);
+                    logger.info("Zapisano rolę: {}", savedRole.getName());
+                } else {
+                    logger.info("Rola już istnieje: {}", roleType);
+                }
+            } catch (Exception e) {
+                logger.error("Błąd podczas zapisywania roli {}: {}", roleType, e.getMessage());
+                throw e;
             }
         }
     }
 
     /**
-     * Przywraca dane firmy z kopii zapasowej.
+     * Pomocnicza metoda do przywracania klientów w osobnej transakcji.
      */
-    private void restoreCompany(Company company) {
-        logger.info("Przywracanie danych firmy");
-        if (company != null) {
-            // Sprawdzamy, czy firma już istnieje
-            Company existingCompany = companyRepository.getCompanyInfo();
-            if (existingCompany != null && existingCompany.getId() != null) {
-                // Aktualizujemy istniejący rekord
-                company.setId(existingCompany.getId());
-            }
-            companyRepository.save(company);
-        }
-    }
-
-    /**
-     * Przywraca klientów z kopii zapasowej.
-     */
-    private void restoreCustomers(List<CustomerDTO> customerDTOs) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void restoreCustomersInTransaction(List<CustomerDTO> customerDTOs) {
         logger.info("Przywracanie klientów: {}", customerDTOs.size());
 
-        Map<Long, Long> customerIdMapping = new HashMap<>(); // Mapowanie starych ID na nowe
-
-        for (CustomerDTO dto : customerDTOs) {
-            Customer customer = new Customer();
-            customer.setName(dto.name);
-            customer.setAddress(dto.address);
-            customer.setNip(dto.nip);
-            customer.setRegon(dto.regon);
-            customer.setEmail(dto.email);
-            customer.setPhone(dto.phone);
-
-            Customer savedCustomer = customerRepository.save(customer);
-            customerIdMapping.put(dto.id, savedCustomer.getId());
+        // Najpierw usuń istniejące dane
+        try {
+            customerRepository.deleteAll();
+            customerRepository.flush();
+        } catch (Exception e) {
+            logger.warn("Nie można usunąć istniejących klientów: {}", e.getMessage());
+            // Kontynuujemy, próbując tylko dodać klientów
         }
 
-        // Zapisujemy mapowanie ID do użycia przy przywracaniu faktur
-        this.customerIdMapping = customerIdMapping;
+        // Teraz przywróć dane z kopii
+        Map<Long, Long> newCustomerIdMapping = new HashMap<>();
+        for (CustomerDTO dto : customerDTOs) {
+            try {
+                Customer customer = new Customer();
+                customer.setName(dto.name);
+                customer.setAddress(dto.address);
+                customer.setNip(dto.nip);
+                customer.setRegon(dto.regon);
+                customer.setEmail(dto.email);
+                customer.setPhone(dto.phone);
+
+                Customer savedCustomer = customerRepository.save(customer);
+                newCustomerIdMapping.put(dto.id, savedCustomer.getId());
+                logger.info("Zapisano klienta: {} (ID: {})", savedCustomer.getName(), savedCustomer.getId());
+            } catch (Exception e) {
+                logger.error("Błąd podczas zapisywania klienta {}: {}", dto.name, e.getMessage());
+                throw e;
+            }
+        }
+
+        // Zapisz mapowanie ID do wykorzystania później
+        this.customerIdMapping = newCustomerIdMapping;
     }
 
-    private Map<Long, Long> customerIdMapping; // Przechowuje mapowanie ID klientów (stare->nowe)
-    private Map<Long, Long> roleIdMapping = new HashMap<>(); // Przechowuje mapowanie ID ról (stare->nowe)
-
     /**
-     * Przywraca użytkowników z kopii zapasowej.
+     * Pomocnicza metoda do przywracania użytkowników w osobnej transakcji.
      */
-    private void restoreUsers(List<UserDTO> userDTOs) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void restoreUsersInTransaction(List<UserDTO> userDTOs) {
         logger.info("Przywracanie użytkowników: {}", userDTOs.size());
 
-        // Tworzymy mapowanie ID ról
-        List<Role> allRoles = roleRepository.findAll();
-        for (Role role : allRoles) {
-            roleIdMapping.put(role.getId(), role.getId());
+        // Najpierw usuń istniejące dane
+        try {
+            userRepository.deleteAll();
+            userRepository.flush();
+        } catch (Exception e) {
+            logger.warn("Nie można usunąć istniejących użytkowników: {}", e.getMessage());
+            // Kontynuujemy, próbując tylko dodać użytkowników
         }
 
-        for (UserDTO dto : userDTOs) {
-            User user = new User();
-            user.setUsername(dto.username);
-            user.setEmail(dto.email);
-            // Ustawiamy domyślne hasło (można zaimplementować specjalną logikę)
-            // W praktyce powinno się wymagać zmiany hasła przy następnym logowaniu
-            user.setPassword(passwordEncoder.encode("password"));
-            user.setActive(dto.active);
-            user.setMustChangePassword(true); // Wymuszamy zmianę hasła
-
-            // Przypisanie ról
-            Set<Role> roles = new HashSet<>();
-            for (Long roleId : dto.roleIds) {
-                roleRepository.findById(roleIdMapping.getOrDefault(roleId, roleId))
-                        .ifPresent(roles::add);
+        // Przygotuj mapowanie ról
+        Map<Long, Role> rolesMap = new HashMap<>();
+        for (Role role : roleRepository.findAll()) {
+            rolesMap.put(role.getId(), role);
+            // Zapisz mapowanie dla roleName->Role
+            if (role.getName() == RoleType.ROLE_ADMIN) {
+                rolesMap.put(1L, role); // Przypisz ID 1 do ADMIN dla kopii zapasowych
+            } else if (role.getName() == RoleType.ROLE_USER) {
+                rolesMap.put(2L, role); // Przypisz ID 2 do USER dla kopii zapasowych
             }
-            user.setRoles(roles);
+        }
 
-            userRepository.save(user);
+        // Teraz przywróć dane z kopii
+        for (UserDTO dto : userDTOs) {
+            try {
+                User user = new User();
+                user.setUsername(dto.username);
+                user.setEmail(dto.email);
+                user.setPassword(passwordEncoder.encode("password")); // Domyślne hasło
+                user.setActive(dto.active);
+                user.setMustChangePassword(true);
+
+                // Przypisanie ról
+                Set<Role> userRoles = new HashSet<>();
+                for (Long roleId : dto.roleIds) {
+                    Role role = rolesMap.get(roleId);
+                    if (role != null) {
+                        userRoles.add(role);
+                    } else {
+                        logger.warn("Nie znaleziono roli o ID: {}", roleId);
+                    }
+                }
+
+                if (userRoles.isEmpty()) {
+                    // Jeśli nie znaleziono ról, przypisz domyślną rolę USER
+                    Role userRole = rolesMap.values().stream()
+                            .filter(r -> r.getName() == RoleType.ROLE_USER)
+                            .findFirst()
+                            .orElse(null);
+
+                    if (userRole != null) {
+                        userRoles.add(userRole);
+                    }
+                }
+
+                user.setRoles(userRoles);
+
+                User savedUser = userRepository.save(user);
+                logger.info("Zapisano użytkownika: {} (ID: {})", savedUser.getUsername(), savedUser.getId());
+            } catch (Exception e) {
+                logger.error("Błąd podczas zapisywania użytkownika {}: {}", dto.username, e.getMessage());
+                throw e;
+            }
         }
     }
 
     /**
-     * Przywraca faktury z kopii zapasowej.
+     * Pomocnicza metoda do przywracania faktur w osobnej transakcji.
      */
-    private void restoreInvoices(List<InvoiceDTO> invoiceDTOs) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void restoreInvoicesInTransaction(List<InvoiceDTO> invoiceDTOs) {
         logger.info("Przywracanie faktur: {}", invoiceDTOs.size());
 
+        // Najpierw usuń istniejące dane
+        try {
+            invoiceRepository.deleteAll();
+            invoiceRepository.flush();
+        } catch (Exception e) {
+            logger.warn("Nie można usunąć istniejących faktur: {}", e.getMessage());
+        }
+
+        // Sprawdź, czy mamy mapowanie ID klientów
+        if (customerIdMapping == null || customerIdMapping.isEmpty()) {
+            logger.warn("Brak mapowania ID klientów - faktury mogą zostać przywrócone niepoprawnie!");
+            customerIdMapping = new HashMap<>();
+        }
+
+        // Teraz przywróć dane z kopii
         for (InvoiceDTO dto : invoiceDTOs) {
-            Invoice invoice = new Invoice();
-            invoice.setInvoiceNumber(dto.invoiceNumber);
-            invoice.setIssueDate(dto.issueDate);
-            invoice.setDueDate(dto.dueDate);
-            invoice.setPaymentMethod(PaymentMethod.valueOf(dto.paymentMethod));
-            invoice.setStatus(InvoiceStatus.valueOf(dto.status));
-            invoice.setNotes(dto.notes);
+            try {
+                Invoice invoice = new Invoice();
+                invoice.setInvoiceNumber(dto.invoiceNumber);
+                invoice.setIssueDate(dto.issueDate);
+                invoice.setDueDate(dto.dueDate);
 
-            // Przypisanie klienta
-            if (dto.customerId != null) {
-                Long newCustomerId = customerIdMapping.getOrDefault(dto.customerId, dto.customerId);
-                customerRepository.findById(newCustomerId).ifPresent(invoice::setCustomer);
+                // Bezpieczne ustawienie metody płatności
+                try {
+                    invoice.setPaymentMethod(PaymentMethod.valueOf(dto.paymentMethod));
+                } catch (Exception e) {
+                    logger.warn("Nieprawidłowa metoda płatności: {}. Ustawiam domyślną.", dto.paymentMethod);
+                    invoice.setPaymentMethod(PaymentMethod.PRZELEW);
+                }
+
+                // Bezpieczne ustawienie statusu
+                try {
+                    invoice.setStatus(InvoiceStatus.valueOf(dto.status));
+                } catch (Exception e) {
+                    logger.warn("Nieprawidłowy status faktury: {}. Ustawiam domyślny.", dto.status);
+                    invoice.setStatus(InvoiceStatus.NIEOPLACONA);
+                }
+
+                invoice.setNotes(dto.notes);
+
+                // WAŻNA ZMIANA - zapisujemy fakturę BEZ klienta najpierw
+                Invoice savedInvoice = invoiceRepository.save(invoice);
+
+                // Przypisanie klienta - teraz w odrębnym kroku
+                if (dto.customerId != null) {
+                    Long newCustomerId = customerIdMapping.get(dto.customerId);
+                    if (newCustomerId != null) {
+                        try {
+                            // Pobierz klienta w obecnej transakcji i przypisz go do faktury
+                            Optional<Customer> customer = customerRepository.findById(newCustomerId);
+                            if (customer.isPresent()) {
+                                savedInvoice.setCustomer(customer.get());
+                                // Zapisz fakturę ponownie, tym razem z klientem
+                                savedInvoice = invoiceRepository.save(savedInvoice);
+                                logger.info("Przypisano klienta ID: {} do faktury ID: {}",
+                                        newCustomerId, savedInvoice.getId());
+                            } else {
+                                logger.warn("Nie znaleziono klienta o ID: {} (stare ID: {})",
+                                        newCustomerId, dto.customerId);
+                            }
+                        } catch (Exception e) {
+                            logger.error("Błąd podczas przypisywania klienta do faktury: {}", e.getMessage());
+                            // Kontynuuj mimo błędu, aby przynajmniej faktura była zapisana
+                        }
+                    } else {
+                        logger.warn("Brak mapowania dla ID klienta: {}", dto.customerId);
+                    }
+                }
+
+                // Dodanie pozycji faktury
+                for (InvoiceItemDTO itemDto : dto.items) {
+                    try {
+                        InvoiceItem item = new InvoiceItem();
+                        item.setProduct(itemDto.product);
+                        item.setQuantity(itemDto.quantity);
+                        item.setPrice(itemDto.price);
+                        item.setInvoice(savedInvoice);
+
+                        savedInvoice.getItems().add(item);
+                    } catch (Exception e) {
+                        logger.error("Błąd podczas dodawania pozycji do faktury: {}", e.getMessage());
+                        // Kontynuuj z pozostałymi pozycjami
+                    }
+                }
+
+                // Zapisanie faktury z pozycjami
+                try {
+                    invoiceRepository.save(savedInvoice);
+                    logger.info("Zapisano fakturę: {} (ID: {})", savedInvoice.getInvoiceNumber(), savedInvoice.getId());
+                } catch (Exception e) {
+                    logger.error("Błąd podczas zapisywania pozycji faktury: {}", e.getMessage());
+                    // Faktura główna jest już zapisana, więc nie zatrzymujemy procesu
+                }
+            } catch (Exception e) {
+                logger.error("Błąd podczas zapisywania faktury {}: {}", dto.invoiceNumber, e.getMessage());
+                // Kontynuuj z kolejnymi fakturami
             }
-
-            // Zapis faktury, aby mieć ID
-            Invoice savedInvoice = invoiceRepository.save(invoice);
-
-            // Dodanie pozycji faktury
-            for (InvoiceItemDTO itemDto : dto.items) {
-                InvoiceItem item = new InvoiceItem();
-                item.setProduct(itemDto.product);
-                item.setQuantity(itemDto.quantity);
-                item.setPrice(itemDto.price);
-                item.setInvoice(savedInvoice);
-
-                savedInvoice.getItems().add(item);
-            }
-
-            // Zapisanie faktury z pozycjami
-            invoiceRepository.save(savedInvoice);
         }
     }
 
     /**
-     * Przywraca logi logowań z kopii zapasowej.
+     * Pomocnicza metoda do przywracania logów logowań w osobnej transakcji.
      */
-    private void restoreLoginAudits(List<LoginAudit> loginAudits) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void restoreLoginAuditsInTransaction(List<LoginAudit> loginAudits) {
         logger.info("Przywracanie logów logowań: {}", loginAudits.size());
-        loginAuditRepository.saveAll(loginAudits);
+
+        // Najpierw usuń istniejące dane
+        try {
+            loginAuditRepository.deleteAll();
+            loginAuditRepository.flush();
+        } catch (Exception e) {
+            logger.warn("Nie można usunąć istniejących logów logowań: {}", e.getMessage());
+            // Kontynuujemy, próbując tylko dodać logi
+        }
+
+        // Teraz przywróć dane z kopii
+        if (loginAudits != null && !loginAudits.isEmpty()) {
+            try {
+                loginAuditRepository.saveAll(loginAudits);
+                logger.info("Zapisano {} logów logowań", loginAudits.size());
+            } catch (Exception e) {
+                logger.error("Błąd podczas zapisywania logów logowań: {}", e.getMessage());
+                throw e;
+            }
+        }
     }
 
     /**
